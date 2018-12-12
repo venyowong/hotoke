@@ -1,0 +1,2 @@
+scrapy
+fake_useragent

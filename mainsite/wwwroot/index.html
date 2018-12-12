@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Hotoke</title>
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link type="text/css" rel="stylesheet" href="./css/site.css"/>
+        <link rel="stylesheet" href="./lib/bootstrap/dist/css/bootstrap.min.css">
+    </head>
+
+    <body class="padding-zero">
+        <div id="app" class="container">
+            <div id="page1" class="top-20">
+                <img src="./images/logo.png" class="rounded mx-auto d-block logo" height="156">
+                <div class="item">
+                    <div class="input-group">
+                        <input type="text" v-model="keyword" class="form-control keyword" placeholder="Enter keyword">
+                        <button type="button" class="btn btn-primary search-button">Search</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page2">
+                <div class="item">
+                    <div class="input-group item">
+                        <img src="./images/logo.png" class="rounded d-block logo" height="38">
+                        <input type="text" v-model="keyword" class="form-control keyword" placeholder="Enter keyword">
+                        <button type="button" class="btn btn-primary search-button">Search</button>
+                    </div>
+
+                    <div style="padding-bottom:26px;" v-for="result in results">
+                        <h4><a v-bind:href="result.Url" target="_blank" onclick="postBrowseRecord(this)">{{result.Title}}</a></h3>
+                        <p><a v-bind:href="result.Url" target="_blank" onclick="postBrowseRecord(this)"><font color="#006621">{{result.Url}}</font></a></p>
+                        <p><font color="#808080">{{result.Desc}}</font></p>
+                        <div v-for="source in result.Sources">
+                            <img class="item-inline" height="16px" src="https://www.bing.com/favicon.ico" v-if="source == 'bing'">
+                            <img class="item-inline" height="16px" src="https://www.baidu.com/favicon.ico" v-else-if="source == 'baidu'">
+                            <img class="item-inline" height="16px" src="./images/google-favicon.ico" v-else-if="source == 'google'">
+                            <img class="item-inline" height="16px" src="./images/logo.png" v-else-if="source == 'hotoke'">
+                        </div>
+                    </div>
+
+                    <span><font color="#808080">没有更多了~ヽ(ー_ー)ノ</font></span>
+                </div>
+            </div>
+        </div>
+
+        <script src="./lib/jquery/dist/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="./lib/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <script src="./js/site.js"></script>
+
+        <script>
+            $("#page2").hide();
+
+            var app = new Vue({
+                el: '#app',
+                data:{
+                    keyword: "",
+                    results: []
+                }
+            });
+
+            var ws = null;
+            var needConnect = true;
+            function initWebSocket() {
+                ws = new WebSocket("ws://" + window.location.host + "/ws/search");
+                ws.onopen = function(evt) {
+                    needConnect = false;
+                    console.log("Connection open ...");
+                }
+                ws.onmessage = function(evt){
+                    window.localStorage.setItem(app.keyword, evt.data);
+                    app.results = JSON.parse(evt.data);
+                }
+                ws.onclose = function(evt) {
+                    needConnect = true;
+                    console.log("Connection closed.");
+                }
+                ws.onerror = function(evt) {
+                    needConnect = true;
+                    console.log("Something wrong happened.");
+                }
+            }
+
+            function init(){
+                param = getParameter("keyword");
+                if(param){
+                    app.keyword = decodeURI(param);
+                    json = window.localStorage.getItem(param);
+                    if(json){
+                        $("#page1").hide();
+                        $("#page2").show();
+                        app.results = JSON.parse(json);
+                    }
+                    else{
+                        search();
+                    }
+                }
+            }
+
+            function sendRequest(){
+                try{
+                    ws.send(app.keyword);
+                }
+                catch(e){
+                    setTimeout(sendRequest, 50);
+                }
+            }
+
+            function search(){
+                if(!app.keyword){
+                    return;
+                }
+
+                history.pushState(null, app.keyword, window.location.origin + "?keyword=" + app.keyword);
+
+                $("#page1").hide();
+                $("#page2").show();
+
+                if(needConnect){
+                    initWebSocket();
+                }
+
+                sendRequest();
+            }
+
+            initWebSocket();
+            init();
+
+            $(".search-button").click(function(){
+                search();
+            });
+
+            $(".logo").click(function() {
+                window.location.href = window.location.origin;
+            });
+
+            $(".keyword").keydown(function(event) {
+                if(event.keyCode == 13) {
+                    search();
+                }
+            });
+
+            function postBrowseRecord(node) {
+                $.post("http://" + window.location.host + "/behavior/browse", {"url": node.href});
+            }
+        </script>
+    </body>
+</html>
