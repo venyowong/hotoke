@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using OpenTracing;
 
 namespace Hotoke.MainSite.Middlewares
 {
@@ -23,10 +24,14 @@ namespace Hotoke.MainSite.Middlewares
 
         private readonly ILogger<SearchMiddleware> logger;
 
-        public SearchMiddleware(RequestDelegate next, IConfiguration configuration, ILogger<SearchMiddleware> logger)
+        private readonly ITracer tracer;
+
+        public SearchMiddleware(RequestDelegate next, IConfiguration configuration, 
+            ILogger<SearchMiddleware> logger, ITracer tracer)
         {
             this.next = next;
             this.logger = logger;
+            this.tracer = tracer;
             this.engines = configuration["Engines"].Split(',').Select(engine => 
             {
                 switch(engine)
@@ -85,15 +90,19 @@ namespace Hotoke.MainSite.Middlewares
                 source = new CancellationTokenSource();
 
                 var keyword = Encoding.UTF8.GetString(buffer, 0, request.Count);
+                var span = this.tracer.BuildSpan("ws-search")
+                    .WithTag("keyword", keyword)
+                    .Start();
                 this.logger.LogInformation($"keyword: {keyword}, ip: {context.Connection.RemoteIpAddress}, useragent: {context.Request.Headers["User-Agent"]}");
 
-                this.Search(webSocket, keyword, results, source.Token);
+                this.Search(webSocket, keyword, results, source.Token, span);
+                span.Finish();
 
                 request = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
         }
 
-        private void Search(WebSocket webSocket, string keyword, List<SearchResult> results, CancellationToken token)
+        private void Search(WebSocket webSocket, string keyword, List<SearchResult> results, CancellationToken token, ISpan span)
         {
             var english = !keyword.HasOtherLetter();
 
@@ -101,6 +110,10 @@ namespace Hotoke.MainSite.Middlewares
             {
                 Task.Run(() =>
                 {
+                    var childSpan = this.tracer.BuildSpan(engine.Name)
+                        .AsChildOf(span)
+                        .Start();
+
                     try
                     {
                         var searchResults = engine.Search(keyword, english);
@@ -119,8 +132,11 @@ namespace Hotoke.MainSite.Middlewares
                     }
                     catch(Exception e)
                     {
+                        childSpan.Log($"{e.Message}\n{e.StackTrace}");
                         this.logger.LogError(e, $"An exception occurred while searching for {keyword}");
                     }
+
+                    childSpan.Finish();
                 }, token);
             });
         }
