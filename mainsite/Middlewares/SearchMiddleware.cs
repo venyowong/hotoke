@@ -7,12 +7,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Hotoke.Common;
+using Hotoke.MainSite.Extensions;
 using Hotoke.SearchEngines;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenTracing;
+using OpenTracing.Util;
 
 namespace Hotoke.MainSite.Middlewares
 {
@@ -24,14 +26,11 @@ namespace Hotoke.MainSite.Middlewares
 
         private readonly ILogger<SearchMiddleware> logger;
 
-        private readonly ITracer tracer;
-
         public SearchMiddleware(RequestDelegate next, IConfiguration configuration, 
-            ILogger<SearchMiddleware> logger, ITracer tracer)
+            ILogger<SearchMiddleware> logger)
         {
             this.next = next;
             this.logger = logger;
-            this.tracer = tracer;
             this.engines = configuration["Engines"].Split(',').Select(engine => 
             {
                 switch(engine)
@@ -76,68 +75,58 @@ namespace Hotoke.MainSite.Middlewares
         {
             var buffer = new byte[1024 * 4];
             var request = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            CancellationTokenSource source = null;
             while (!request.CloseStatus.HasValue)
             {
-                var results = new List<SearchResult>();
-                try
-                {
-                    source?.Cancel();
-                    this.logger.LogInformation("user is searching for other words, so cancel old tasks.");
-                }
-                catch{}
-                source?.Dispose();
-                source = new CancellationTokenSource();
-
                 var keyword = Encoding.UTF8.GetString(buffer, 0, request.Count);
-                var span = this.tracer.BuildSpan("ws-search")
+                var span = GlobalTracer.Instance?.BuildSpan("ws-search")
                     .WithTag("keyword", keyword)
-                    .Start();
-                this.logger.LogInformation($"keyword: {keyword}, ip: {context.Connection.RemoteIpAddress}, useragent: {context.Request.Headers["User-Agent"]}");
+                    .StartActive();
+                this.logger.RecordInfo($"keyword: {keyword}, ip: {context.Connection.RemoteIpAddress}, useragent: {context.Request.Headers["User-Agent"]}");
 
-                this.Search(webSocket, keyword, results, source.Token, span);
-                span.Finish();
+                this.Search(webSocket, keyword);
+                span?.Dispose();
 
                 request = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
         }
 
-        private void Search(WebSocket webSocket, string keyword, List<SearchResult> results, CancellationToken token, ISpan span)
+        private void Search(WebSocket webSocket, string keyword)
         {
+            var results = new List<SearchResult>();
+            var spinLock = new SpinLock();
             var english = !keyword.HasOtherLetter();
 
-            this.engines.ForEach(engine =>
+            Parallel.ForEach(this.engines, engine =>
             {
-                Task.Run(() =>
+                try
                 {
-                    var childSpan = this.tracer.BuildSpan(engine.Name)
-                        .AsChildOf(span)
-                        .Start();
+                    var searchResults = engine.Search(keyword, english);
+                    if(searchResults == null)
+                    {
+                        return;
+                    }
 
+                    var gotLock = false;
                     try
                     {
-                        var searchResults = engine.Search(keyword, english);
-                        if(searchResults == null)
-                        {
-                            return;
-                        }
-
-                        this.logger.LogInformation($"{engine.Name} finished search.");
-                        lock(results)
-                        {
-                            this.MergeResult(keyword, searchResults, results);
-                            webSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(
-                                JsonConvert.SerializeObject(results))), WebSocketMessageType.Text, true, CancellationToken.None);
-                        }
+                        spinLock.Enter(ref gotLock);
+                        this.MergeResult(keyword, searchResults, results);
+                        this.logger.RecordInfo($"{engine.Name} results merged.");
+                        webSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(
+                            JsonConvert.SerializeObject(results))), WebSocketMessageType.Text, true, CancellationToken.None);
                     }
-                    catch(Exception e)
+                    finally
                     {
-                        childSpan.Log($"{e.Message}\n{e.StackTrace}");
-                        this.logger.LogError(e, $"An exception occurred while searching for {keyword}");
+                        if(gotLock)
+                        {
+                            spinLock.Exit();
+                        }
                     }
-
-                    childSpan.Finish();
-                }, token);
+                }
+                catch(Exception e)
+                {
+                    this.logger.RecordError(e, $"An exception occurred while searching for {keyword}");
+                }
             });
         }
 

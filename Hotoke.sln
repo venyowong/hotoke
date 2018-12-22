@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "test\TestCon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainSite", "mainsite\MainSite.csproj", "{6C9F6494-A097-4A5A-8576-145A606ACEDA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", "{C040DCA1-41DA-49CA-BE69-6FFC998F74EA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "opentracing-net-extension", "opentracing-net-extension", "{43660625-F9E0-4B80-9C23-6433D0DFCFFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpentracingNetExtension", "extensions\opentracing-net-extension\src\OpentracingNetExtension.csproj", "{F837B705-34C1-4AEE-B45F-0A8B48C01345}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +78,21 @@ Global
 		{6C9F6494-A097-4A5A-8576-145A606ACEDA}.Release|x64.Build.0 = Release|Any CPU
 		{6C9F6494-A097-4A5A-8576-145A606ACEDA}.Release|x86.ActiveCfg = Release|Any CPU
 		{6C9F6494-A097-4A5A-8576-145A606ACEDA}.Release|x86.Build.0 = Release|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Debug|x64.Build.0 = Debug|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Debug|x86.Build.0 = Debug|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Release|x64.ActiveCfg = Release|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Release|x64.Build.0 = Release|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Release|x86.ActiveCfg = Release|Any CPU
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{43660625-F9E0-4B80-9C23-6433D0DFCFFF} = {C040DCA1-41DA-49CA-BE69-6FFC998F74EA}
+		{F837B705-34C1-4AEE-B45F-0A8B48C01345} = {43660625-F9E0-4B80-9C23-6433D0DFCFFF}
 	EndGlobalSection
 EndGlobal

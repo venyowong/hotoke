@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\common\Common.csproj" />
     <ProjectReference Include="..\searchengines\SearchEngines.csproj" />
+    <ProjectReference Include="..\extensions\opentracing-net-extension\src\OpentracingNetExtension.csproj" />
   </ItemGroup>
 
   <ItemGroup>
