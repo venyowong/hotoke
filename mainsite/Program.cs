@@ -15,6 +15,7 @@ using OpenTracing;
 using OpenTracing.Util;
 using Petabridge.Tracing.Zipkin;
 using System.Diagnostics;
+using Petabridge.Tracing.Zipkin.Util;
 
 namespace MainSite
 {
@@ -29,12 +30,15 @@ namespace MainSite
             {
                 _tracer = new ZipkinTracer(new ZipkinTracerOptions(host, "hotoke")
                 {
-                    ScopeManager = new AsyncLocalScopeManager()
+                    ScopeManager = new AsyncLocalScopeManager(),
+                    IdProvider = ThreadLocalRngSpanIdProvider.TraceId64BitProvider
                 });
             }
 
             var observer = new DiagnosticListenerObserver();
-            observer.AddProcessor(new HttpClientDiagnosticProcessor());
+            var httpProcessor = new HttpClientDiagnosticProcessor();
+            //httpProcessor.IgnorePattern.Add(ConfigurationManager.AppSettings["hotokesearch"]);
+            observer.AddProcessor(httpProcessor);
             DiagnosticListener.AllListeners.Subscribe(observer);
         }
 

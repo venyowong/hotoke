@@ -75,7 +75,7 @@ namespace Hotoke.SearchEngines
                     return null;
                 }
 
-                result.Url = aNode.Attributes["href"]?.Value;
+                result.Url = aNode.Attributes["href"]?.Value.Trim();
                 if(string.IsNullOrWhiteSpace(result.Url))
                 {
                     return null;
@@ -91,10 +91,10 @@ namespace Hotoke.SearchEngines
                 {
                     result.Url = $"https://www.google.com.hk{result.Url}";
                 }
-                result.Title = System.Web.HttpUtility.HtmlDecode(aNode.InnerText);
+                result.Title = System.Web.HttpUtility.HtmlDecode(aNode.InnerText.Trim());
 
                 var desc = node.SelectSingleNode(".//div[@class='s']/span[@class='st']");
-                result.Desc = System.Web.HttpUtility.HtmlDecode(desc?.InnerText);
+                result.Desc = System.Web.HttpUtility.HtmlDecode(desc?.InnerText.Trim());
 
                 return result;
             })

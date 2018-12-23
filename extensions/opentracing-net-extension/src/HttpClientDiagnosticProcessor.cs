@@ -15,6 +15,8 @@ namespace OpentracingExtension
 
         public string ListenerName => "HttpHandlerDiagnosticListener";
 
+        public List<string> IgnorePattern{get;set;} = new List<string>();
+
         [DiagnosticName("System.Net.Http.Request")]
         public void HttpRequest(object value)
         {
@@ -30,13 +32,20 @@ namespace OpentracingExtension
                 return;
             }
 
+            foreach(var pattern in this.IgnorePattern)
+            {
+                if(request.RequestUri.AbsoluteUri.Contains(pattern))
+                {
+                    return;
+                }
+            }
+
             var span = GlobalTracer.Instance.BuildSpan("http request")
                 .WithTag(Tags.SpanKind, Tags.SpanKindClient)
                 .WithTag(Tags.HttpMethod, request.Method.ToString())
                 .WithTag(Tags.HttpUrl, request.RequestUri.ToString())
                 .WithTag(Tags.PeerHostname, request.RequestUri.Host)
                 .WithTag(Tags.PeerPort, request.RequestUri.Port)
-                .WithTag("request time", DateTime.Now.ToString())
                 .Start();
             GlobalTracer.Instance.Inject(span.Context, BuiltinFormats.HttpHeaders, new HttpHeadersInjectAdapter(request.Headers));
             this.requests.TryAdd(requestId.ToString(), span);
@@ -59,7 +68,6 @@ namespace OpentracingExtension
             }
 
             span.SetTag(Tags.HttpStatus, (int)response.StatusCode);
-            span.SetTag("response time", DateTime.Now.ToString());
             span.Finish();
         }
     }

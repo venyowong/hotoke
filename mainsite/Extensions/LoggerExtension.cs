@@ -8,13 +8,15 @@ namespace Hotoke.MainSite.Extensions
     {
         public static void RecordInfo(this ILogger logger, string message)
         {
-            logger?.LogInformation(message);
+            logger?.LogInformation(
+                $"[{GlobalTracer.Instance?.ActiveSpan?.Context.TraceId},{GlobalTracer.Instance?.ActiveSpan?.Context.SpanId}] {message}");
             GlobalTracer.Instance?.ActiveSpan?.Log(message);
         }
 
         public static void RecordError(this ILogger logger, Exception exception, string message)
         {
-            logger?.LogError(exception, message);
+            logger?.LogError(exception, 
+                $"[{GlobalTracer.Instance?.ActiveSpan?.Context.TraceId},{GlobalTracer.Instance?.ActiveSpan?.Context.SpanId}] {message}");
             GlobalTracer.Instance?.ActiveSpan?.Log($"{message}\n{exception?.Message}\n{exception?.StackTrace}");
         }
     }

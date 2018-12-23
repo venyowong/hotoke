@@ -24,7 +24,8 @@ namespace Hotoke.SearchEngines
 
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
-            var results = doc.DocumentNode.SelectNodes("//div[@id='content_left']/div[@class='result c-container ']");
+            var results = doc.DocumentNode.SelectNodes("//div[@id='content_left']/div[@class='result-op c-container']");
+            results = results.AddRange(doc.DocumentNode.SelectNodes("//div[@id='content_left']/div[@class='result c-container ']"));
             if(results == null || results.Count == 0)
             {
                 return null;
@@ -43,16 +44,16 @@ namespace Hotoke.SearchEngines
                     return null;
                 }
 
-                result.Url = aNode.Attributes["href"]?.Value;
+                result.Url = aNode.Attributes["href"]?.Value.Trim();
                 if(string.IsNullOrWhiteSpace(result.Url))
                 {
                     return null;
                 }
 
-                result.Title = System.Web.HttpUtility.HtmlDecode(aNode.InnerText);
+                result.Title = System.Web.HttpUtility.HtmlDecode(aNode.InnerText.Trim());
 
                 var desc = node.SelectSingleNode(".//div[@class='c-abstract']");
-                result.Desc = System.Web.HttpUtility.HtmlDecode(desc?.InnerText);
+                result.Desc = System.Web.HttpUtility.HtmlDecode(desc?.InnerText.Trim());
 
                 return result;
             })

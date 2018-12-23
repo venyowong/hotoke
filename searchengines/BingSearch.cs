@@ -43,16 +43,16 @@ namespace Hotoke.SearchEngines
                     return null;
                 }
 
-                result.Url = aNode.Attributes["href"]?.Value;
+                result.Url = aNode.Attributes["href"]?.Value.Trim();
                 if(string.IsNullOrWhiteSpace(result.Url))
                 {
                     return null;
                 }
 
-                result.Title = System.Web.HttpUtility.HtmlDecode(aNode.InnerText);
+                result.Title = System.Web.HttpUtility.HtmlDecode(aNode.InnerText.Trim());
 
                 var desc = node.SelectSingleNode(".//div[@class='b_caption']/p");
-                result.Desc = System.Web.HttpUtility.HtmlDecode(desc?.InnerText);
+                result.Desc = System.Web.HttpUtility.HtmlDecode(desc?.InnerText.Trim());
 
                 return result;
             })

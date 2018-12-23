@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Hotoke.MainSite.Middlewares;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpentracingExtension;
 // using OpenTracing.Contrib.NetCore.CoreFx;
 
 namespace MainSite
@@ -32,12 +34,6 @@ namespace MainSite
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-
-            // services.AddOpenTracing();
-            // services.Configure<HttpHandlerDiagnosticOptions>(options =>
-            // {
-            //     options.IgnorePatterns.Add(message => message.RequestUri.AbsolutePath.Contains("/api/v2/spans"));
-            // });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
