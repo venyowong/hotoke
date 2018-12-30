@@ -12,6 +12,7 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     
     <None Include="log4net.config" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <None Include="patu.yml" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
 </Project>

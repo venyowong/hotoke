@@ -2,8 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -11,6 +13,7 @@ using log4net;
 using log4net.Config;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Patu.Config;
 
 namespace Patu
 {
@@ -33,12 +36,14 @@ namespace Patu
         };
         private static Random Random = new Random();
         private static ConcurrentDictionary<string, string> Cookies = new ConcurrentDictionary<string, string>();
+        private static ILog _log = null;
 
         static Utility()
         {
             var repository = LogManager.CreateRepository("Patu");
             XmlConfigurator.Configure(repository, new FileInfo("log4net.config"));
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            _log = LogManager.GetLogger("Patu", typeof(Utility));
         }
 
         public static ILog GetLogger(Type type)
@@ -281,6 +286,52 @@ namespace Patu
                 }
             }
             return false;
+        }
+
+        public static void SendAutoDownMail(AutoDownConfig config, string subject, string body)
+        {
+            if(config == null)
+            {
+                _log.Info("AutoDownConfig is null, so won't send mail.");
+                return;
+            }
+
+            try
+            {
+                using(var client = new SmtpClient())
+                {
+                    client.Host = config.SmtpHost;
+                    if(config.SmtpPort > 0)
+                    {
+                        client.Port = config.SmtpPort;
+                    }
+
+                    var message = new MailMessage(config.SendMail, config.ReceiveMail);
+                    message.Subject = subject;
+                    message.SubjectEncoding = Encoding.UTF8;
+                    message.Body = $@"Hi,Patu user
+
+                    This is a Patu auto down mail.
+
+                    {body}
+                    
+                    --Patu";
+                    message.BodyEncoding = Encoding.UTF8;
+                    config.CopyMails?.ForEach(mail => message.CC.Add(mail));
+                    
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                    client.EnableSsl = true;
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential(config.SendMail, config.SendPassword);
+
+                    client.Send(message);
+                    _log.Info("Success to send auto down mail.");
+                }
+            }
+            catch(Exception e)
+            {
+                _log.Error("Catched an exception when sending auto down mail", e);
+            }
         }
     }
 }

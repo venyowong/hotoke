@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using log4net;
+using Patu.AutoDown;
 using Patu.HttpClientFactories;
 using Patu.Processor;
+using Patu.Config;
 
 namespace Patu
 {
@@ -27,11 +29,14 @@ namespace Patu
         private PatuConfig config;
         private int crawlingDeepth = 1;
         private ConcurrentBag<string> seedBag{get;set;} = new ConcurrentBag<string>();
-        private string id = Guid.NewGuid().ToString();
+        private string id = Guid.NewGuid().GetHashCode().ToString();
         private IHttpClientFactory httpClientFactory;
+        private AbnormalRateRecorder abnormalRateRecorder = null;
 
         public string Id{get => id;}
+
         public bool Finished{get; private set;} = false;
+
 
         public PatuCrawlTask(PatuConfig config, IEnumerable<string> seeds,
             IProcessor processor, CancellationTokenSource cancellation = null,
@@ -46,11 +51,26 @@ namespace Patu
                 this.cancellation = new CancellationTokenSource();
                 this.disposable = true;
             }
-            this.bloom = new BloomFilter<string>(config.BloomSize, config.ExpectedPageCount);
             this.seeds = new ConcurrentQueue<string>(seeds);
             this.processor = processor;
             this.config = config;
             this.httpClientFactory = httpClientFactory;
+            if(this.config.AutoDown?.EnableAutoDown ?? false)
+            {
+                this.abnormalRateRecorder = new AbnormalRateRecorder();
+            }
+            if(!string.IsNullOrWhiteSpace(this.config.Name))
+            {
+                this.id = this.config.Name;
+            }
+            try
+            {
+                this.bloom = BloomFilter<string>.LoadFromFile(AppDomain.CurrentDomain.BaseDirectory, this.id);
+            }
+            catch
+            {
+                this.bloom = new BloomFilter<string>(config.BloomSize, config.ExpectedPageCount);
+            }
         }
 
         public Task Start()
@@ -58,7 +78,7 @@ namespace Patu
             return Task.Run(() =>
             {
                 Logger.Info($"CrawlingDeepth: {this.crawlingDeepth}");
-                while(true)
+                while(!this.Finished)
                 {
                     if(this.seeds.Count > 0)
                     {
@@ -101,6 +121,9 @@ namespace Patu
                 this.cancellation.Cancel();
                 this.cancellation.Dispose();
             }
+
+            this.abnormalRateRecorder?.Dispose();
+            this.semaphore.Dispose();
         }
 
         public void AddSeeds(params string[] seeds)
@@ -177,11 +200,31 @@ namespace Patu
                 catch(Exception e)
                 {
                     Logger.Error($"Catched an exception when processing {seed}", e);
+                    this.abnormalRateRecorder?.Increment();
+                    this.CheckAbnormalRate();
                 }
 
                 Interlocked.Decrement(ref this.activeTask);
                 this.semaphore.Release();
             }, this.cancellation.Token);
+        }
+
+        private void CheckAbnormalRate()
+        {
+            if(this.abnormalRateRecorder == null || this.abnormalRateRecorder.Rate <= this.config.AutoDown?.MaxTolerableRate)
+            {
+                return;
+            }
+
+            lock(this)
+            {
+                var message = $"PatuCrawlTask({this.Id}) has gotten {this.abnormalRateRecorder.Rate} abnormal things per minute and auto down now!";
+                Logger.Info(message);
+                this.bloom.Save(AppDomain.CurrentDomain.BaseDirectory, this.id);
+                Utility.SendAutoDownMail(this.config.AutoDown, "Patu crawler had auto down.", $"{DateTime.Now} {message}");
+                this.Finished = true;
+                this.cancellation.Cancel();
+            }
         }
     }
 }

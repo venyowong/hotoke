@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using log4net;
 
-namespace Patu
+namespace Patu.Config
 {
     public class PatuConfig
     {
         private static ILog Logger = Utility.GetLogger(typeof(PatuConfig));
 
         public List<string> Seeds{get;set;}
+
         public string Interval{get;set;}
 
         private long intervalMills = 0;
@@ -71,9 +72,16 @@ namespace Patu
         }
 
         public int BloomSize{get;set;} = 10000000;
+
         public int ExpectedPageCount{get;set;} = 500000;
+
         public int CrawlDeepth{get;set;}
+
         public List<string> TargetHosts{get;set;}
+
+        public string Name{get;set;}
+
+        public AutoDownConfig AutoDown{get;set;}
 
         public override int GetHashCode()
         {

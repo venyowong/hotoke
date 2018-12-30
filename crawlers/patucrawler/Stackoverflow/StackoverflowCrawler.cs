@@ -1,17 +1,14 @@
 using System.Collections.Generic;
 using System.Configuration;
 using Patu;
+using Patu.Config;
 using Patu.HttpClientFactories;
 
 namespace Hotoke.PatuCrawler.Stackoverflow
 {
     public class StackoverflowCrawler : Patu.PatuCrawler
     {
-        public StackoverflowCrawler() : base(new PatuConfig
-        {
-            Interval = "1y",
-            CrawlDeepth = 1
-        }, new StackoverflowProcessor())
+        public StackoverflowCrawler() : base(new StackoverflowProcessor())
         {
             this.Config.Seeds = new List<string>();
             int.TryParse(ConfigurationManager.AppSettings["StackoverflowStart"], out int start);

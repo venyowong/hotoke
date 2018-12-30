@@ -19,30 +19,28 @@ namespace Hotoke.PatuCrawler.Stackoverflow
             if(questions == null || questions.Count <= 0)
             {
                 _logger.Warn($"cannot get any question from {page.Url}");
+                return;
             }
 
             questions.AsParallel().ForAll(question =>
             {
-                try
+                var data = new Dictionary<string, string>();
+                var questionId = question.SelectSingleNode("div[2]/h3/a")?.Attributes["href"].Value.Split('/')[2];
+                if(string.IsNullOrWhiteSpace(questionId))
                 {
-                    var data = new Dictionary<string, string>();
-                    var questionId = question.SelectSingleNode("div[2]/h3/a")?.Attributes["href"].Value.Split('/')[2];
-                    if(string.IsNullOrWhiteSpace(questionId))
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    data.Add("url", $"https://stackoverflow.com/questions/{questionId}");
-                    data.Add("desc", question.SelectSingleNode("div[2]/div[1]/text()")?.InnerText?.Trim());
-                    data.Add("title", question.SelectSingleNode("div[2]/h3/a/text()")?.InnerText?.Trim());
-                    var keywords = question.SelectNodes("div[2]/div[2]/a")?.Select(node => node?.InnerText);
-                    if(keywords != null)
-                    {
-                        data.Add("keyword", string.Join(",", keywords));
-                    }
+                data.Add("url", $"https://stackoverflow.com/questions/{questionId}");
+                data.Add("desc", question.SelectSingleNode("div[2]/div[1]/text()")?.InnerText?.Trim());
+                data.Add("title", question.SelectSingleNode("div[2]/h3/a/text()")?.InnerText?.Trim());
+                var keywords = question.SelectNodes("div[2]/div[2]/a")?.Select(node => node?.InnerText);
+                if(keywords != null)
+                {
+                    data.Add("keyword", string.Join(",", keywords));
+                }
 
-                    HttpUtility.Post(ConfigurationManager.AppSettings["IndexHost"], data);
-                }catch{}
+                HttpUtility.Post(ConfigurationManager.AppSettings["IndexHost"], data);
             });
         }
     }

@@ -6,6 +6,7 @@ using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OpenTracing.Util;
 using StanSoft;
 
 namespace Hotoke.MainSite.Controllers
@@ -28,6 +29,9 @@ namespace Hotoke.MainSite.Controllers
             {
                 return;
             }
+
+            var span = GlobalTracer.Instance?.BuildSpan("behavior-browse")
+                .StartActive();
 
             var data = new Dictionary<string, string>();
             data.Add("url", url);
@@ -59,6 +63,8 @@ namespace Hotoke.MainSite.Controllers
             }
 
             HttpUtility.Post($"{this.configuration["SearchHost"]}/index", data);
+
+            span?.Dispose();
         }
     }
 }

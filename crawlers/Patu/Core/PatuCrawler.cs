@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Patu.Processor;
+using Patu.Config;
 using YamlDotNet.Serialization;
 
 namespace Patu

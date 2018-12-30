@@ -652,3 +652,4 @@ ASALocalRun/
 # End of https://www.gitignore.io/api/java,python,eclipse,netbeans,intellij,visualstudio,visualstudiocode
 
 search/index/*
+crawlers/patucrawler/patu.yml
