@@ -17,11 +17,12 @@ package cn.venyo.spark;
 
 import cn.venyo.HtmlPage;
 import cn.venyo.Utility;
-import com.hankcs.lucene.HanLPAnalyzer;
 import io.opentracing.Span;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.ansj.lucene7.AnsjAnalyzer;
+import org.ansj.lucene7.AnsjAnalyzer.TYPE;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -67,7 +68,7 @@ public class Action {
             }
             span.log("got all parameters");
 
-            Analyzer analyzer = new HanLPAnalyzer();
+            Analyzer analyzer = new AnsjAnalyzer(TYPE.nlp_ansj);
             Directory directory = FSDirectory.open(Paths.get("index"));
             IndexWriterConfig config = new IndexWriterConfig(analyzer);
             IndexWriter iwriter = new IndexWriter(directory, config);
@@ -118,7 +119,7 @@ public class Action {
         }
 
         try{
-            Analyzer analyzer = new HanLPAnalyzer();
+            Analyzer analyzer = new AnsjAnalyzer(TYPE.index_ansj);
             Directory directory = FSDirectory.open(Paths.get("index"));
             DirectoryReader ireader = DirectoryReader.open(directory);
             IndexSearcher isearcher = new IndexSearcher(ireader);
@@ -151,6 +152,21 @@ public class Action {
             span.setTag("status", "catched exception");
             span.finish();
             return results;
+        }
+    }
+    
+    public static int count(Request request, Response response){
+        try{
+            Directory directory = FSDirectory.open(Paths.get("index"));
+            DirectoryReader ireader = DirectoryReader.open(directory);
+            int result = ireader.numDocs();
+            ireader.close();
+            directory.close();
+            return result;
+        }
+        catch(Exception e){
+            LOGGER.error("throw exception in search method", e);
+            return 0;
         }
     }
 }

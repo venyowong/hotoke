@@ -16,6 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <lucene.version>7.6.0</lucene.version>
   </properties>
 
   <dependencies>
@@ -24,18 +25,6 @@
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.hankcs</groupId>
-      <artifactId>hanlp</artifactId>
-      <version>portable-1.6.8</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.hankcs.nlp</groupId>
-      <artifactId>hanlp-lucene-plugin</artifactId>
-      <version>1.1.6</version>
     </dependency>
 
     <dependency>
@@ -64,6 +53,38 @@
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-web-servlet-filter</artifactId>
       <version>0.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ansj</groupId>
+      <artifactId>ansj_lucene7_plug</artifactId>
+      <version>5.1.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ansj</groupId>
+      <artifactId>ansj_seg</artifactId>
+      <version>5.1.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-core</artifactId>
+        <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-highlighter</artifactId>
+        <version>${lucene.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-queries</artifactId>
+        <version>${lucene.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-queryparser</artifactId>
+        <version>${lucene.version}</version>
     </dependency>
   </dependencies>
 

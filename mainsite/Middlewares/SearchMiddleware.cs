@@ -152,8 +152,8 @@ namespace Hotoke.MainSite.Middlewares
                     bool same = false;
                     foreach(var r in results)
                     {
-                        if(r.Uri.SameAs(result.Uri) || r.Title == result.Title || (r.Title.Length <= 10 && 
-                            result.Title.Length <= 10 && r.Title.SimilarWith(result.Title)))
+                        if(r.Uri.SameAs(result.Uri) || r.Title == result.Title || (r.Title.Length <= 15 && 
+                            result.Title.Length <= 15 && r.Title.SimilarWith(result.Title)))
                         {
                             same = true;
 
