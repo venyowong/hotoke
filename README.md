@@ -9,7 +9,7 @@
 
 本项目的主体应用为 mainsite 目录下的 asp.net core 项目，启动后即可使用百度、必应、360的综合搜索。
 
-1. 下载或克隆本项目：`git clone https://github.com/venyowong/hotoke.git` 或下载[打包好的文件](https://github.com/venyowong/hotoke/releases/download/lastest-alpha/hotoke.mainsite.zip)
+1. 下载或克隆本项目：`git clone https://github.com/venyowong/hotoke.git` 或下载[打包好的文件](https://github.com/venyowong/hotoke/releases/download/lastest-alpha-2019.01.05/hotoke.mainsite.zip)
 2. mainsite 项目依赖 .net core 运行环境，所以需要先[安装 .net core](https://dotnet.microsoft.com/download)
 3. 编辑 mainsite/appsettings.json 配置文件中的 Engines 属性，保留自己想使用的搜索引擎。
 4. 在 mainsite 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet MainSite.dll`(这一步可能需要权限),你将会看到类似以下的输出：
@@ -33,7 +33,7 @@ hotoke-search 是基于 Lucene 编写的 Java 应用，因此运行之前需要�
 
 1. 按照 [async-proxy-pool 安装教程](https://github.com/chenjiandongx/async-proxy-pool#如何使用) 安装好代理池，当然此步骤也可以省去，可以直接使用我已经搭建好的环境
 2. [安装、配置 Java 环境](http://venyo.cn/?keyword=java%20%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE)
-3. 下载[已打包好的 hotoke-search jar 包](https://github.com/venyowong/hotoke/releases/download/lastest-alpha/hotoke.search.jar)或自行使用 maven 打包 search 项目
+3. 下载[已打包好的 hotoke-search jar 包](https://github.com/venyowong/hotoke/releases/download/lastest-alpha-2019.01.05/hotoke.search.jar)或自行使用 maven 打包 search 项目
 4. 打开命令行，执行 `java -jar hotoke.search.jar`，你将会看到类似以下的输出：
     ```
     2019-01-05 10:46:46.732 [Thread-1] INFO  org.eclipse.jetty.util.log - Logging initialized @1255ms to org.eclipse.jetty.util.log.Slf4jLog
