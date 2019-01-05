@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Threading;
 using Hotoke.Common;
 using log4net;
 using Patu;
@@ -11,7 +12,7 @@ namespace Hotoke.PatuCrawler.Stackoverflow
     public class StackoverflowProcessor : IProcessor
     {
         private static ILog _logger = Utility.GetLogger(typeof(StackoverflowProcessor));
-
+        private static string _indexHost = ConfigurationManager.AppSettings["IndexHost"];
         public void Process(HtmlPage page, ICrawlContext context)
         {
             _logger.Info(page.Url);
@@ -40,8 +41,9 @@ namespace Hotoke.PatuCrawler.Stackoverflow
                     data.Add("keyword", string.Join(",", keywords));
                 }
 
-                HttpUtility.Post(ConfigurationManager.AppSettings["IndexHost"], data);
+                HttpUtility.Post(_indexHost, data);
             });
+            _logger.Info($"{page.Url} has processed.");
         }
     }
 }
