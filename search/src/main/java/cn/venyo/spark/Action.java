@@ -17,6 +17,7 @@ package cn.venyo.spark;
 
 import cn.venyo.HtmlPage;
 import cn.venyo.Utility;
+import cn.venyo.index.IndexManager;
 import io.opentracing.Span;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -68,10 +69,6 @@ public class Action {
             }
             span.log("got all parameters");
 
-            Analyzer analyzer = new AnsjAnalyzer(TYPE.nlp_ansj);
-            Directory directory = FSDirectory.open(Paths.get("index"));
-            IndexWriterConfig config = new IndexWriterConfig(analyzer);
-            IndexWriter iwriter = new IndexWriter(directory, config);
             Document doc = new Document();
             String id = String.valueOf(url.hashCode());
             doc.add(new StringField("id", id, Field.Store.YES));
@@ -87,9 +84,9 @@ public class Action {
                 doc.add((new Field("desc", desc.toLowerCase(), TextField.TYPE_STORED)));
             }
             span.log("created document");
-            iwriter.updateDocument(new Term("id", id), doc);
-            iwriter.close();
+            IndexManager.INDEX_WRITER.updateDocument(new Term("id", id), doc);
 
+            LOGGER.info("indexed: " + url);
             span.setTag("status", "success");
             span.finish();
             return true;
@@ -159,7 +156,7 @@ public class Action {
         try{
             Directory directory = FSDirectory.open(Paths.get("index"));
             DirectoryReader ireader = DirectoryReader.open(directory);
-            int result = ireader.numDocs();
+            int result = ireader.maxDoc();
             ireader.close();
             directory.close();
             return result;
