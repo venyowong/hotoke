@@ -43,6 +43,8 @@ namespace Hotoke.MainSite.Middlewares
                         return new GoogleSearch();
                     case "hotoke":
                         return new HotokeSearch();
+                    case "360":
+                        return new SoSearch();
                     default:
                         return default(ISearchEngine);
                 }
@@ -106,6 +108,15 @@ namespace Hotoke.MainSite.Middlewares
                         return;
                     }
 
+                    // 由于 hotoke 只爬取自己所感兴趣的内容，所以对于普遍的搜索来说
+                    // 搜索效果较为无法令人满意，因此 hotoke 不能第一个展示出来
+                    // 这样也能让其他第一个结束的搜索引擎在 merge 的时候，不用去重
+                    // 可以快速地响应
+                    if(results.Count == 0 && engine.Name == "hotoke")
+                    {
+                        SpinWait.SpinUntil(() => results.Count > 0);
+                    }
+
                     var gotLock = false;
                     try
                     {
@@ -152,8 +163,7 @@ namespace Hotoke.MainSite.Middlewares
                     bool same = false;
                     foreach(var r in results)
                     {
-                        if(r.Uri.SameAs(result.Uri) || r.Title == result.Title || (r.Title.Length <= 15 && 
-                            result.Title.Length <= 15 && r.Title.SimilarWith(result.Title)))
+                        if(r.Uri.SameAs(result.Uri) || r.Title == result.Title || r.Title.SimilarWith(result.Title))
                         {
                             same = true;
 
