@@ -122,7 +122,7 @@ namespace Hotoke.MainSite.Middlewares
                     {
                         this.logger.RecordInfo($"count of {engine.Name} results: {searchResults.Count()}");
                         spinLock.Enter(ref gotLock);
-                        this.MergeResult(keyword, searchResults, results);
+                        SearchManager.MergeResult(keyword, searchResults, results);
                         this.logger.RecordInfo($"{engine.Name} results merged.");
                         webSocket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(
                             JsonConvert.SerializeObject(results))), WebSocketMessageType.Text, true, CancellationToken.None);
@@ -142,63 +142,6 @@ namespace Hotoke.MainSite.Middlewares
             });
         }
 
-        private void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, List<SearchResult> results)
-        {
-            if(results.Count == 0)
-            {
-                results.AddRange(searchResults);
-                results.ForEach(result => 
-                {
-                    result.Sources.Add(result.Source);
-                    var max = Math.Max(keyword.Length, result.Title.Length) + 1;
-                    var diff = StringUtility.LevenshteinDistance(keyword, result.Title) + 1;
-                    result.Score *= (float)diff / (float)max;
-                });
-            }
-            else
-            {
-                var newResults = new List<SearchResult>();
-                foreach(var result in searchResults)
-                {
-                    bool same = false;
-                    foreach(var r in results)
-                    {
-                        if(r.Uri.SameAs(result.Uri) || r.Title == result.Title || r.Title.SimilarWith(result.Title))
-                        {
-                            same = true;
-
-                            if(r.Score <= result.Score)
-                            {
-                                r.Score *= result.Score / result.Base;
-                            }
-                            else
-                            {
-                                r.Score = result.Score * (r.Score / r.Base);
-                            }
-
-                            if(!r.Sources.Contains(result.Source))
-                            {
-                                r.Sources.Add(result.Source);
-                            }
-                            break;
-                        }
-                    }
-
-                    if(!same)
-                    {
-                        result.Sources.Add(result.Source);
-                        var max = Math.Max(keyword.Length, result.Title.Length) + 1;
-                        var diff = StringUtility.LevenshteinDistance(keyword, result.Title) + 1;
-                        result.Score *= (float)diff / (float)max;
-                        newResults.Add(result);
-                    }
-                }
-
-                results.AddRange(newResults);
-                newResults = results.OrderBy(result => result.Score).ToList();
-                results.Clear();
-                results.AddRange(newResults);
-            }
-        }
+        
     }
 }
