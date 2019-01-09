@@ -37,7 +37,7 @@ namespace MainSite
 
             var observer = new DiagnosticListenerObserver();
             var httpProcessor = new HttpClientDiagnosticProcessor();
-            httpProcessor.IgnorePattern.Add(ConfigurationManager.AppSettings["hotokesearch"]);
+            //httpProcessor.IgnorePattern.Add(ConfigurationManager.AppSettings["hotokesearch"]);
             observer.AddProcessor(httpProcessor);
             DiagnosticListener.AllListeners.Subscribe(observer);
         }

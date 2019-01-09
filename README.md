@@ -31,7 +31,7 @@ hotoke-search 是基于 Lucene 编写的 Java 应用，因此运行之前需要�
 
 以下介绍加入 Stackoverflow 到 hotoke-search 的步骤：
 
-1. 按照 [async-proxy-pool 安装教程](https://github.com/chenjiandongx/async-proxy-pool#如何使用) 安装好代理池，当然此步骤也可以省去，可以直接使用我已经搭建好的环境
+1. 按照 [async-proxy-pool 安装教程](https://github.com/chenjiandongx/async-proxy-pool#如何使用) 安装好代理池，当然此步骤也可以省去，可以直接使用我已经搭建好的环境，此步骤只会影响到下面的第7步，若不想自己搭建代理池，保留 ProxyPoolUrl 配置即可
 2. [安装、配置 Java 环境](http://venyo.cn/?keyword=java%20%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE)
 3. 下载[已打包好的 hotoke-search jar 包](https://github.com/venyowong/hotoke/releases/download/lastest-alpha/hotoke.search.jar)或自行使用 maven 打包 search 项目
 4. 打开命令行，执行 `java -jar hotoke.search.jar`，你将会看到类似以下的输出：
@@ -67,3 +67,4 @@ hotoke-search 是基于 Lucene 编写的 Java 应用，因此运行之前需要�
 9. 打开命令行，进入 crawlers/patucrawler 目录，执行 `dotnet run` 命令
 10. 通过 http://localhost:4685/count 或 http://{your_ip}:4685/count 可看到写入的文档数量
 11. 若发生异常或文档数量未增长，可查看爬虫程序日志或 hotoke-search 项目的日志，hotoke-search 项目日志在 hotoke.search.jar 文件所在目录的 log 子目录中
+12. 当爬虫程序和 hotoke-search 都运行正常，则可按照快速启动的步骤，在第3步加入 hotoke 即可在后续搜索中看到 hotoke 的搜索结果了
