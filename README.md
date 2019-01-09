@@ -68,3 +68,70 @@ hotoke-search 是基于 Lucene 编写的 Java 应用，因此运行之前需要�
 10. 通过 http://localhost:4685/count 或 http://{your_ip}:4685/count 可看到写入的文档数量
 11. 若发生异常或文档数量未增长，可查看爬虫程序日志或 hotoke-search 项目的日志，hotoke-search 项目日志在 hotoke.search.jar 文件所在目录的 log 子目录中
 12. 当爬虫程序和 hotoke-search 都运行正常，则可按照快速启动的步骤，在第3步加入 hotoke 即可在后续搜索中看到 hotoke 的搜索结果了
+
+## 接入线上 Demo 接口
+
+如果你不想自己搭建环境，但是又认为本项目的接口对你有用的话，可以直接接入线上 Demo 的接口，以下介绍两种接入方式：
+
+### HTTP API
+
+`GET http://venyo.cn/search?keyword={keyword}&requestId=`
+首次调用该接口，将会先返回部分搜索结果，以及一些搜索状态的相关参数。这么做的原因是，多个搜索引擎的响应时间不一致，为了加快接口的响应速度，会先返回第一个搜索引擎的搜索结果。返回结果数据结构如下：
+```
+{
+	"requestId": "92f8d2eb-811d-4c22-abb8-ae06476a0372",
+	"searched": 4,
+	"finished": true,
+	"results": [{
+		"title": "Mary Venyo | LinkedIn",
+		"url": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
+		"uri": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
+		"desc": null,
+		"score": 0.772727251,
+		"base": 11.0,
+		"source": "baidu",
+		"sources": ["baidu"]
+	}, {
+		"title": "Venyo - 个人中心- 云+社区- 腾讯云",
+		"url": "https://cloud.tencent.com/developer/user/1352059",
+		"uri": "https://cloud.tencent.com/developer/user/1352059",
+		"desc": "Venyo 暂未填写个人简介 Java|C#|流计算服务|ASP.NET|数据库 在 Venyo 的专栏发表了文章 2018-07-272018-07-27 21:36:10 无需数据迁移的水平分库方案 在 Venyo 的专栏发...",
+		"score": 0.7916667,
+		"base": 11.0,
+		"source": "360",
+		"sources": ["360"]
+	}]
+}
+```
+在以上返回结果中，searched 表示已完成搜索的引擎数量，finished 表示是否已完成本次搜索任务，requestId 为本次搜索请求的 id，该字段主要用来进行后续请求，即当 finished 为 false 时，表示搜索任务未完成，可能还有其他搜索结果，可调用
+`GET http://venyo.cn/search?keyword={keyword}&requestId={首次调用接口返回的 requestId}`
+继续获取搜索结果，直至 finished 为 true。
+
+这种请求方式也是线上 Demo 所使用的方式。
+
+### Web Socket
+
+使用 Web Socket 的方式请求时，只需要使用客户端连接`ws://venyo.cn/ws/search`即可。发送字符串即为发送搜索请求，接收的数据即为搜索结果，数据结构如下：
+```
+[{
+    "title": "Mary Venyo | LinkedIn",
+    "url": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
+    "uri": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
+    "desc": null,
+    "score": 0.772727251,
+    "base": 11.0,
+    "source": "baidu",
+    "sources": ["baidu"]
+}, {
+    "title": "Venyo - 个人中心- 云+社区- 腾讯云",
+    "url": "https://cloud.tencent.com/developer/user/1352059",
+    "uri": "https://cloud.tencent.com/developer/user/1352059",
+    "desc": "Venyo 暂未填写个人简介 Java|C#|流计算服务|ASP.NET|数据库 在 Venyo 的专栏发表了文章 2018-07-272018-07-27 21:36:10 无需数据迁移的水平分库方案 在 Venyo 的专栏发...",
+    "score": 0.7916667,
+    "base": 11.0,
+    "source": "360",
+    "sources": ["360"]
+}]
+```
+
+### 注：若希望有其他请求方式，可以建 issue。若有朋友写了页面接入 venyo.cn，可以的话，希望分享一下，我自己写的页面太丑了，23333333333

@@ -30,10 +30,10 @@
                     </div>
 
                     <div style="padding-bottom:26px;" v-for="result in results">
-                        <h4><a v-bind:href="result.Url" target="_blank" onclick="postBrowseRecord(this)">{{result.Title}}</a></h3>
-                        <p><a v-bind:href="result.Url" target="_blank" onclick="postBrowseRecord(this)"><font color="#006621">{{result.Url}}</font></a></p>
-                        <p><font color="#808080">{{result.Desc}}</font></p>
-                        <div v-for="source in result.Sources">
+                        <h4><a v-bind:href="result.url" target="_blank" onclick="postBrowseRecord(this)">{{result.title}}</a></h3>
+                        <p><a v-bind:href="result.url" target="_blank" onclick="postBrowseRecord(this)"><font color="#006621">{{result.url}}</font></a></p>
+                        <p><font color="#808080">{{result.desc}}</font></p>
+                        <div v-for="source in result.sources">
                             <img class="item-inline" height="16px" src="https://www.bing.com/favicon.ico" v-if="source == 'bing'">
                             <img class="item-inline" height="16px" src="https://www.baidu.com/favicon.ico" v-else-if="source == 'baidu'">
                             <img class="item-inline" height="16px" src="./images/google-favicon.ico" v-else-if="source == 'google'">
@@ -64,28 +64,6 @@
                 }
             });
 
-            var ws = null;
-            var needConnect = true;
-            function initWebSocket() {
-                ws = new WebSocket("ws://" + window.location.host + ":8080/ws/search");
-                ws.onopen = function(evt) {
-                    needConnect = false;
-                    console.log("Connection open ...");
-                }
-                ws.onmessage = function(evt){
-                    window.localStorage.setItem(app.keyword, evt.data);
-                    app.results = JSON.parse(evt.data);
-                }
-                ws.onclose = function(evt) {
-                    needConnect = true;
-                    console.log("Connection closed.");
-                }
-                ws.onerror = function(evt) {
-                    needConnect = true;
-                    console.log("Something wrong happened.");
-                }
-            }
-
             function init(){
                 param = getParameter("keyword");
                 if(param){
@@ -102,13 +80,21 @@
                 }
             }
 
-            function sendRequest(){
-                try{
-                    ws.send(app.keyword);
+            function sendRequest(requestId){
+                if(!requestId){
+                    requestId = "";
                 }
-                catch(e){
-                    setTimeout(sendRequest, 50);
-                }
+                $.get(`http://${window.location.host}/search?keyword=${app.keyword}&requestId=${requestId}`,
+                function(data){
+                    if(data){
+                        app.results = data.results;
+                        if(data.finished == false && data.requestId){
+                            setTimeout(() => {
+                                sendRequest(data.requestId);
+                            }, 300);
+                        }
+                    }
+                });
             }
 
             function search(){
@@ -116,19 +102,14 @@
                     return;
                 }
 
-                history.pushState(null, app.keyword, window.location.origin + "?keyword=" + app.keyword);
+                history.pushState(null, app.keyword, `${window.location.origin}${window.location.pathname}?keyword=${app.keyword}`);
 
                 $("#page1").hide();
                 $("#page2").show();
 
-                if(needConnect){
-                    initWebSocket();
-                }
-
                 sendRequest();
             }
 
-            initWebSocket();
             init();
 
             $(".search-button").click(function(){
