@@ -84,7 +84,11 @@
                 if(!requestId){
                     requestId = "";
                 }
-                $.get(`http://${window.location.host}/search?keyword=${app.keyword}&requestId=${requestId}`,
+                let url = `http://${window.location.host}/search?keyword=${encodeURIComponent(app.keyword)}&requestId=${encodeURIComponent(requestId)}`;
+                if(requestId){
+                    url = `http://${window.location.host}/search?requestId=${encodeURIComponent(requestId)}`
+                }
+                $.get(url,
                 function(data){
                     if(data){
                         app.results = data.results;
