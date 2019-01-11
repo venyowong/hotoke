@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Hotoke.MainSite.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -57,15 +56,6 @@ namespace MainSite
             app.UseDefaultFiles(defaultFile);
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
-            var webSocketOptions = new WebSocketOptions()
-            {
-                KeepAliveInterval = TimeSpan.FromSeconds(120),
-                ReceiveBufferSize = 4 * 1024
-            };
-            app.UseWebSockets(webSocketOptions);
-
-            app.UseMiddleware<SearchMiddleware>();
 
             app.UseMvc(routes =>
             {

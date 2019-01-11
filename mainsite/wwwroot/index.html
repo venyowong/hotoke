@@ -84,9 +84,9 @@
                 if(!requestId){
                     requestId = "";
                 }
-                let url = `http://${window.location.host}/search?keyword=${encodeURIComponent(app.keyword)}&requestId=${encodeURIComponent(requestId)}`;
+                let url = `${window.location.origin}/search?keyword=${encodeURIComponent(app.keyword)}&requestId=${encodeURIComponent(requestId)}`;
                 if(requestId){
-                    url = `http://${window.location.host}/search?requestId=${encodeURIComponent(requestId)}`
+                    url = `${window.location.origin}/search?requestId=${encodeURIComponent(requestId)}`
                 }
                 $.get(url,
                 function(data){
@@ -131,7 +131,7 @@
             });
 
             function postBrowseRecord(node) {
-                $.post("http://" + window.location.host + "/behavior/browse", {"url": node.href});
+                $.post(window.location.origin + "/behavior/browse", {"url": node.href});
             }
         </script>
     </body>
