@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpentracingExtension;
-// using OpenTracing.Contrib.NetCore.CoreFx;
 
 namespace MainSite
 {

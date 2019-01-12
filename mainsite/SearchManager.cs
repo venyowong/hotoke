@@ -19,10 +19,11 @@ namespace Hotoke.MainSite
         private static readonly Logger _logger = LogManager.GetLogger("SearchManager", typeof(SearchManager));
         private static volatile MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private static readonly List<ISearchEngine> _engines = new List<ISearchEngine>();
+        private static readonly bool _useImmortalTask;
 
         static SearchManager()
         {
-            _engines = ConfigurationManager.AppSettings["Engines"].Split(',').Select(engine => 
+            _engines = ConfigurationManager.AppSettings["engines"].Split(',').Select(engine => 
             {
                 switch(engine)
                 {
@@ -42,6 +43,8 @@ namespace Hotoke.MainSite
             })
             .Where(engine => engine != null)
             .ToList();
+
+            bool.TryParse(ConfigurationManager.AppSettings["useimmortaltask"], out _useImmortalTask);
         }
 
         public static SearchResultModel GetSearchResult(string keyword)
@@ -57,11 +60,53 @@ namespace Hotoke.MainSite
                 RequestId = requestId
             };
             _cache.Set(requestId, result, new TimeSpan(0, 1, 0));
+            var english = !keyword.HasOtherLetter();
+            result.Results = new List<SearchResult>();
+            var spinLock = new SpinLock(false);
 
-            Task.Run(() => StartSearchTask(keyword, result));
+            if(!_useImmortalTask)
+            {
+                Task.Run(() =>
+                {
+                    Parallel.ForEach(_engines, engine =>
+                    {
+                        SearchPerEngine(engine, keyword, english, result, spinLock);
+                    });
+
+                    result.Finished = true;
+                });
+            }
+            else
+            {
+                Task.Run(() =>
+                {
+                    ParallelUtility.ForEach(_engines, engine =>
+                    {
+                        SearchPerEngine(engine, keyword, english, result, spinLock);
+                    });
+
+                    result.Finished = true;
+                });
+            }
 
             SpinWait.SpinUntil(() => result.Searched > 0 || result.Finished);
-            return result;
+
+            SearchResultModel newResult = null;
+            var gotlock = false;
+            try
+            {
+                spinLock.Enter(ref gotlock);
+                newResult = result.Copy();
+            }
+            catch(Exception e)
+            {
+                _logger.RecordError(e, "catched an exception when copying result.");
+            }
+            finally
+            {
+                spinLock.Exit();
+            }
+            return newResult;
         }
 
         public static SearchResultModel GetSearchResult(string requestId, string keyword = "")
@@ -76,63 +121,56 @@ namespace Hotoke.MainSite
             {
                 return GetSearchResult(keyword);
             }
-
+            
             return result;
         }
 
-        public static void StartSearchTask(string keyword, SearchResultModel result)
+        private static void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
+            SearchResultModel result, SpinLock spinLock)
         {
-            var spinLock = new SpinLock();
-            var english = !keyword.HasOtherLetter();
-            result.Results = new List<SearchResult>();
-
-            Parallel.ForEach(_engines, engine =>
+            try
             {
+                var searchResults = engine.Search(keyword, english);
+                if(searchResults == null)
+                {
+                    return;
+                }
+
+                // 由于 hotoke 只爬取自己所感兴趣的内容，所以对于普遍的搜索来说
+                // 搜索效果较为无法令人满意，因此 hotoke 不能第一个展示出来
+                // 这样也能让其他第一个结束的搜索引擎在 merge 的时候，不用去重
+                // 可以快速地响应
+                if(result.Results.Count == 0 && engine.Name == "hotoke")
+                {
+                    SpinWait.SpinUntil(() => result.Results.Count > 0);
+                }
+
+                _logger.RecordInfo($"count of {engine.Name} results: {searchResults.Count()}");
+                var gotlock = false;
                 try
                 {
-                    var searchResults = engine.Search(keyword, english);
-                    if(searchResults == null)
-                    {
-                        return;
-                    }
-
-                    // 由于 hotoke 只爬取自己所感兴趣的内容，所以对于普遍的搜索来说
-                    // 搜索效果较为无法令人满意，因此 hotoke 不能第一个展示出来
-                    // 这样也能让其他第一个结束的搜索引擎在 merge 的时候，不用去重
-                    // 可以快速地响应
-                    if(result.Results.Count == 0 && engine.Name == "hotoke")
-                    {
-                        SpinWait.SpinUntil(() => result.Results.Count > 0);
-                    }
-
-                    var gotLock = false;
-                    try
-                    {
-                        _logger.RecordInfo($"count of {engine.Name} results: {searchResults.Count()}");
-                        spinLock.Enter(ref gotLock);
-                        MergeResult(keyword, searchResults, result.Results);
-                        _logger.RecordInfo($"{engine.Name} results merged.");
-                        var count = result.Searched;
-                        result.Searched = Interlocked.Increment(ref count);
-                    }
-                    finally
-                    {
-                        if(gotLock)
-                        {
-                            spinLock.Exit();
-                        }
-                    }
+                    spinLock.Enter(ref gotlock);
+                    MergeResult(keyword, searchResults, result.Results);
                 }
                 catch(Exception e)
                 {
-                    _logger.RecordError(e, $"An exception occurred while searching for {keyword}");
+                    _logger.RecordError(e, "catched an exception when merging result.");
                 }
-            });
-
-            result.Finished = true;
+                finally
+                {
+                    spinLock.Exit();
+                }
+                _logger.RecordInfo($"{engine.Name} results merged.");
+                var count = result.Searched;
+                result.Searched = Interlocked.Increment(ref count);
+            }
+            catch(Exception e)
+            {
+                _logger.RecordError(e, $"An exception occurred while searching for {keyword}");
+            }
         }
 
-        public static void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, List<SearchResult> results)
+        private static void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, List<SearchResult> results)
         {
             if(results.Count == 0)
             {
