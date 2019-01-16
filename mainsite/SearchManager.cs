@@ -20,11 +20,23 @@ namespace Hotoke.MainSite
         private static volatile MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private static readonly List<ISearchEngine> _engines = new List<ISearchEngine>();
         private static readonly bool _useImmortalTask;
+        private static readonly Dictionary<string, float> _factorDic = new Dictionary<string, float>();
 
         static SearchManager()
         {
             _engines = ConfigurationManager.AppSettings["engines"].Split(',').Select(engine => 
             {
+                var strs = engine.Split(':');
+                engine = strs[0];
+                if(strs.Length > 1 && float.TryParse(strs[1], out float factor))
+                {
+                    _factorDic.TryAdd(engine, factor);
+                }
+                else
+                {
+                    _factorDic.TryAdd(engine, 1f);
+                }
+
                 switch(engine)
                 {
                     case "bing":
@@ -150,7 +162,7 @@ namespace Hotoke.MainSite
                 try
                 {
                     spinLock.Enter(ref gotlock);
-                    MergeResult(keyword, searchResults, result.Results);
+                    MergeResult(keyword, searchResults, result.Results, _factorDic[engine.Name]);
                 }
                 catch(Exception e)
                 {
@@ -170,7 +182,8 @@ namespace Hotoke.MainSite
             }
         }
 
-        private static void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, List<SearchResult> results)
+        private static void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, 
+            List<SearchResult> results, float factor)
         {
             if(results.Count == 0)
             {
@@ -181,6 +194,7 @@ namespace Hotoke.MainSite
                     var max = Math.Max(keyword.Length, result.Title.Length) + 1;
                     var diff = StringUtility.LevenshteinDistance(keyword, result.Title) + 1;
                     result.Score *= (float)diff / (float)max;
+                    result.Score *= factor;
                 });
             }
             else
@@ -218,6 +232,7 @@ namespace Hotoke.MainSite
                         var max = Math.Max(keyword.Length, result.Title.Length) + 1;
                         var diff = StringUtility.LevenshteinDistance(keyword, result.Title) + 1;
                         result.Score *= (float)diff / (float)max;
+                        result.Score *= factor;
                         newResults.Add(result);
                     }
                 }

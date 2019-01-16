@@ -28,8 +28,8 @@ namespace Hotoke.SearchEngines
             for(int i = 0; i < results.Count; i++)
             {
                 results[i].Source = "hotoke";
-                results[i].Base = (results.Count + 1) * 2;
-                results[i].Score = (i + 1) * 2;
+                results[i].Base = results.Count + 1;
+                results[i].Score = i + 1;
             }
 
             return results;
