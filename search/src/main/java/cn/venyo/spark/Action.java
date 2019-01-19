@@ -16,7 +16,6 @@
 package cn.venyo.spark;
 
 import cn.venyo.HtmlPage;
-import cn.venyo.Utility;
 import cn.venyo.index.IndexManager;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -100,7 +99,7 @@ public class Action {
             IndexSearcher isearcher = new IndexSearcher(ireader);
             MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{"content", "title", "keywords", "desc"}, analyzer);
             Query query = parser.parse(keyword.toLowerCase());
-            ScoreDoc[] hits = isearcher.search(query, 10, new Sort()).scoreDocs;
+            ScoreDoc[] hits = isearcher.search(query, 3, new Sort()).scoreDocs;
 
             for (int i = 0; i < hits.length; i++) {
                 Document hitDoc = isearcher.doc(hits[i].doc);

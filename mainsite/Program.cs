@@ -10,40 +10,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Web;
-using OpenTracing;
-using OpenTracing.Util;
-using Petabridge.Tracing.Zipkin;
 using System.Diagnostics;
-using Petabridge.Tracing.Zipkin.Util;
 
 namespace MainSite
 {
     public class Program
     {
-        private static readonly ZipkinTracer _tracer = null;
-
-        static Program()
-        {
-            var host = ConfigurationManager.AppSettings["ZipkinHost"];
-            if(!string.IsNullOrWhiteSpace(host))
-            {
-                _tracer = new ZipkinTracer(new ZipkinTracerOptions(host, "hotoke")
-                {
-                    ScopeManager = new AsyncLocalScopeManager(),
-                    IdProvider = ThreadLocalRngSpanIdProvider.TraceId64BitProvider
-                });
-            }
-        }
-
         public static void Main(string[] args)
         {
             var logger = NLog.Web.NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
             try
             {
-                if(_tracer != null)
-                {
-                    GlobalTracer.Register(_tracer);
-                }
                 CreateWebHostBuilder(args).Build().Run();
             }
             catch(Exception e)
@@ -53,7 +30,6 @@ namespace MainSite
             finally
             {
                 NLog.LogManager.Shutdown();
-                _tracer?.Dispose();
             }
         }
 
@@ -66,7 +42,6 @@ namespace MainSite
                     logging.ClearProviders();
                     logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
                 })
-                .ConfigureServices(services => services.AddSingleton<ITracer>(_tracer))
                 .UseNLog();
     }
 }

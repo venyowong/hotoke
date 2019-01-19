@@ -9,7 +9,6 @@ using Hotoke.MainSite.Models;
 using Hotoke.SearchEngines;
 using Hotoke.Common;
 using NLog;
-using Hotoke.MainSite.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Hotoke.MainSite
@@ -24,7 +23,7 @@ namespace Hotoke.MainSite
 
         static SearchManager()
         {
-            _engines = ConfigurationManager.AppSettings["engines"].Split(',').Select(engine => 
+            _engines = ConfigurationManager.AppSettings["engines"].Split(',').Select<string, ISearchEngine>(engine => 
             {
                 var strs = engine.Split(':');
                 engine = strs[0];
@@ -39,18 +38,15 @@ namespace Hotoke.MainSite
 
                 switch(engine)
                 {
-                    case "bing":
-                        return new BingSearch();
-                    case "baidu":
-                        return new BaiduSearch();
                     case "google":
                         return new GoogleSearch();
                     case "hotoke":
                         return new HotokeSearch();
                     case "360":
-                        return new SoSearch();
+                    case "baidu":
+                    case "bing":
                     default:
-                        return default(ISearchEngine);
+                        return new GenericSearch(engine);
                 }
             })
             .Where(engine => engine != null)
@@ -112,7 +108,7 @@ namespace Hotoke.MainSite
             }
             catch(Exception e)
             {
-                _logger.RecordError(e, "catched an exception when copying result.");
+                _logger.Error(e, "catched an exception when copying result.");
             }
             finally
             {
@@ -157,7 +153,7 @@ namespace Hotoke.MainSite
                     SpinWait.SpinUntil(() => result.Results.Count > 0);
                 }
 
-                _logger.RecordInfo($"count of {engine.Name} results: {searchResults.Count()}");
+                _logger.Info($"count of {engine.Name} results: {searchResults.Count()}");
                 var gotlock = false;
                 try
                 {
@@ -166,19 +162,19 @@ namespace Hotoke.MainSite
                 }
                 catch(Exception e)
                 {
-                    _logger.RecordError(e, "catched an exception when merging result.");
+                    _logger.Error(e, "catched an exception when merging result.");
                 }
                 finally
                 {
                     spinLock.Exit();
                 }
-                _logger.RecordInfo($"{engine.Name} results merged.");
+                _logger.Info($"{engine.Name} results merged.");
                 var count = result.Searched;
                 result.Searched = Interlocked.Increment(ref count);
             }
             catch(Exception e)
             {
-                _logger.RecordError(e, $"An exception occurred while searching for {keyword}");
+                _logger.Error(e, $"An exception occurred while searching for {keyword}");
             }
         }
 
