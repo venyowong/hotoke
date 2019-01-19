@@ -9,6 +9,7 @@ using Patu.AutoDown;
 using Patu.HttpClientFactories;
 using Patu.Processor;
 using Patu.Config;
+using System.Net.Sockets;
 
 namespace Patu
 {
@@ -24,7 +25,7 @@ namespace Patu
         /// <summary>
         /// Limit the number of tasks to twice the number of system processors
         /// </summary>
-        private Semaphore semaphore = new Semaphore(Environment.ProcessorCount * 2, Environment.ProcessorCount * 2);
+        private Semaphore semaphore = new Semaphore(Environment.ProcessorCount, Environment.ProcessorCount);
         private int activeTask = 0;
         private PatuConfig config;
         private int crawlingDeepth = 1;
@@ -87,6 +88,11 @@ namespace Patu
                     else
                     {
                         SpinWait.SpinUntil(() => this.activeTask == 0);
+                        if(this.seeds.Count > 0)
+                        {
+                            continue;
+                        }
+
                         Interlocked.Increment(ref this.crawlingDeepth);
                         if(this.crawlingDeepth > this.config.CrawlDeepth)
                         {
@@ -196,6 +202,10 @@ namespace Patu
                     };
                     page.Document.LoadHtml(page.Content);
                     this.processor.Process(page, this);
+                }
+                catch(AggregateException)
+                {
+                    this.seeds.Enqueue(seed);
                 }
                 catch(Exception e)
                 {

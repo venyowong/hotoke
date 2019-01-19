@@ -6,10 +6,12 @@ using Patu.HttpClientFactories;
 
 namespace Hotoke.PatuCrawler.Stackoverflow
 {
-    public class StackoverflowCrawler : Patu.PatuCrawler
+    public class StackoverflowCrawler : GenericCrawler
     {
         public StackoverflowCrawler() : base(new StackoverflowProcessor())
         {
+            this.Config.CrawlDeepth = 1;
+            this.Config.Name = "stackoverflow";
             this.Config.Seeds = new List<string>();
             int.TryParse(ConfigurationManager.AppSettings["StackoverflowStart"], out int start);
             int.TryParse(ConfigurationManager.AppSettings["StackoverflowEnd"], out int end);
@@ -17,15 +19,6 @@ namespace Hotoke.PatuCrawler.Stackoverflow
             {
                 this.Config.Seeds.Add($"https://stackoverflow.com/questions?page={i}&sort=frequent&pageSize=50");
             }
-        }
-
-        public override PatuCrawlTask GenerateTask()
-        {
-            return new PatuCrawlTask(this.Config, this.Config.Seeds, 
-                this.processor, this.cancellation, new ContinuousProxyFactory(() =>
-                {
-                    return Utility.HttpGet(ConfigurationManager.AppSettings["ProxyPoolUrl"])?["http"]?.ToString();
-                }));
         }
     }
 }

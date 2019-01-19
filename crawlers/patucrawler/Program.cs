@@ -8,7 +8,16 @@ namespace Hotoke.PatuCrawler
     {
         static void Main(string[] args)
         {
-            using(var crawler = new StackoverflowCrawler())
+            Patu.PatuCrawler crawler = null;
+            if(args.Length > 0 && args[0] == "stackoverflow")
+            {
+                crawler = new StackoverflowCrawler();
+            }
+            if(crawler == null)
+            {
+                crawler = new GenericCrawler(new GenericProcessor());
+            }
+            using(crawler)
             {
                 crawler.Start();
                 Thread.Sleep(1000);

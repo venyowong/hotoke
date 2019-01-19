@@ -13,6 +13,7 @@ namespace Hotoke.PatuCrawler.Stackoverflow
     {
         private static ILog _logger = Utility.GetLogger(typeof(StackoverflowProcessor));
         private static string _indexHost = ConfigurationManager.AppSettings["IndexHost"];
+        
         public void Process(HtmlPage page, ICrawlContext context)
         {
             _logger.Info(page.Url);
