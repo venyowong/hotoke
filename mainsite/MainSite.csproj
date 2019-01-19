@@ -10,14 +10,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog" Version="4.5.10" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="4.7.0" />
-    <PackageReference Include="Petabridge.Tracing.Zipkin" Version="0.4.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\common\Common.csproj" />
     <ProjectReference Include="..\searchengines\SearchEngines.csproj" />
-    <ProjectReference Include="..\extensions\opentracing-net-extension\src\OpentracingNetExtension.csproj" />
   </ItemGroup>
 
   <ItemGroup>

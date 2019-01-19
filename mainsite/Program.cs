@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Web;
-using OpentracingExtension;
 using OpenTracing;
 using OpenTracing.Util;
 using Petabridge.Tracing.Zipkin;
@@ -34,12 +33,6 @@ namespace MainSite
                     IdProvider = ThreadLocalRngSpanIdProvider.TraceId64BitProvider
                 });
             }
-
-            var observer = new DiagnosticListenerObserver();
-            var httpProcessor = new HttpClientDiagnosticProcessor();
-            //httpProcessor.IgnorePattern.Add(ConfigurationManager.AppSettings["hotokesearch"]);
-            observer.AddProcessor(httpProcessor);
-            DiagnosticListener.AllListeners.Subscribe(observer);
         }
 
         public static void Main(string[] args)

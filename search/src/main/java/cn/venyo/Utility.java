@@ -15,7 +15,6 @@
  */
 package cn.venyo;
 
-import io.opentracing.Tracer;
 import java.util.Properties;
 
 /**
@@ -23,6 +22,5 @@ import java.util.Properties;
  * @author venyowong<https://github.com/venyowong>
  */
 public class Utility {
-    public static Tracer TRACER;
     public static Properties APPLICATION_PROPERTIES = new Properties();
 }

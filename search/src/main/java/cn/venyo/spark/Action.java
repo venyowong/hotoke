@@ -18,7 +18,6 @@ package cn.venyo.spark;
 import cn.venyo.HtmlPage;
 import cn.venyo.Utility;
 import cn.venyo.index.IndexManager;
-import io.opentracing.Span;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +29,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -53,9 +50,6 @@ public class Action {
     private static Logger LOGGER = LoggerFactory.getLogger(Action.class);
     
     public static Object index(Request request, Response response){
-        Span span = Utility.TRACER.buildSpan("index")
-            .start();
-
         try{
             String url = request.queryMap("url").value();
             String content = request.queryMap("content").value();
@@ -63,11 +57,8 @@ public class Action {
             String keywords = request.queryMap("keywords").value();
             String desc = request.queryMap("desc").value();
             if(url == null || url.isEmpty() || title == null || title.isEmpty()){
-                span.setTag("status", "invalid paramters");
-                span.finish();
                 return false;
             }
-            span.log("got all parameters");
 
             Document doc = new Document();
             String id = String.valueOf(url.hashCode());
@@ -83,35 +74,22 @@ public class Action {
             if(desc != null && !desc.isEmpty()){
                 doc.add((new Field("desc", desc.toLowerCase(), TextField.TYPE_STORED)));
             }
-            span.log("created document");
             IndexManager.INDEX_WRITER.updateDocument(new Term("id", id), doc);
 
             LOGGER.info("indexed: " + url);
-            span.setTag("status", "success");
-            span.finish();
             return true;
         }
         catch (Exception e){
             LOGGER.error("throw exception in index method", e);
-            String message = e.getMessage();
-            if(message != null && !message.isEmpty()){
-                span.log(message);
-            }
-            span.setTag("status", "catched exception");
-            span.finish();
             return false;
         }
     }
     
     public static Object search(Request request, Response response){
-        Span span = Utility.TRACER.buildSpan("index")
-            .start();
         List<HtmlPage> results = new ArrayList<>();
 
         String keyword = request.queryMap("keyword").value();
         if(keyword == null || keyword.isEmpty()){
-            span.setTag("status", "invalid paramters");
-            span.finish();
             return results;
         }
 
@@ -122,7 +100,6 @@ public class Action {
             IndexSearcher isearcher = new IndexSearcher(ireader);
             MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{"content", "title", "keywords", "desc"}, analyzer);
             Query query = parser.parse(keyword.toLowerCase());
-            span.log("parsed query");
             ScoreDoc[] hits = isearcher.search(query, 10, new Sort()).scoreDocs;
 
             for (int i = 0; i < hits.length; i++) {
@@ -136,18 +113,10 @@ public class Action {
             ireader.close();
             directory.close();
 
-            span.setTag("status", "success");
-            span.finish();
             return results;
         }
         catch (Exception e){
             LOGGER.error("throw exception in search method", e);
-            String message = e.getMessage();
-            if(message != null && !message.isEmpty()){
-                span.log(message);
-            }
-            span.setTag("status", "catched exception");
-            span.finish();
             return results;
         }
     }
