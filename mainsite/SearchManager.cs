@@ -117,7 +117,7 @@ namespace Hotoke.MainSite
             return newResult;
         }
 
-        public static SearchResultModel GetSearchResult(string requestId, string keyword = "")
+        public static SearchResultModel GetSearchResult(string requestId, string keyword)
         {
             if(string.IsNullOrWhiteSpace(requestId))
             {
@@ -131,6 +131,11 @@ namespace Hotoke.MainSite
             }
             
             return result;
+        }
+
+        public static SearchResultModel GetSearchResultById(string requestId)
+        {
+            return GetSearchResult(requestId, string.Empty);
         }
 
         private static void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
@@ -201,8 +206,17 @@ namespace Hotoke.MainSite
                     bool same = false;
                     foreach(var r in results)
                     {
-                        if(r.Uri.SameAs(result.Uri) || r.Title == result.Title || r.Title.SimilarWith(result.Title))
+                        if(r.Title == result.Title || r.Title.SimilarWith(result.Title))
                         {
+                            if(Utility.BadUrls.Contains(r.Url))
+                            {
+                                r.Url = result.Url;
+                            }
+                            else if(!Utility.BadUrls.Contains(result.Url) && !r.Uri.SameAs(result.Uri))
+                            {
+                                continue;
+                            }
+
                             same = true;
 
                             if(r.Score <= result.Score)

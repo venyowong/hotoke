@@ -10,5 +10,11 @@ namespace Hotoke.MainSite.Controllers
         {
             return SearchManager.GetSearchResult(requestId, keyword);
         }
+
+        [HttpGet]
+        public int Count(string requestId)
+        {
+            return SearchManager.GetSearchResultById(requestId)?.Searched ?? 0;
+        }
     }
 }

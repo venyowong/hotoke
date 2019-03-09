@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Configuration;
 using Hotoke.Common;
 using Hotoke.MainSite.Models;
 
@@ -6,6 +7,20 @@ namespace Hotoke.MainSite
 {
     static class Utility
     {
+        public static string[] BadUrls;
+
+        static Utility()
+        {
+            try
+            {
+                BadUrls = ConfigurationManager.AppSettings["badurls"].Split(';');
+            }
+            finally
+            {
+                BadUrls = new string[0];
+            }
+        }
+
         public static SearchResultModel Copy(this SearchResultModel model)
         {
             if(model == null)
