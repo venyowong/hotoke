@@ -18,6 +18,9 @@ package cn.venyo.index;
 import cn.venyo.Utility;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.ansj.lucene7.AnsjAnalyzer;
@@ -33,6 +36,13 @@ import org.apache.lucene.store.FSDirectory;
  */
 public class IndexManager {
     private static Thread COMMIT_THREAD;
+    private static ConcurrentHashMap<String, CustomIndex> INDEX_MAP = 
+            new ConcurrentHashMap<String, CustomIndex>();
+    private static Thread CLOSE_THREAD;
+    
+    /**
+     * 默认的 IndexWriter(索引目录为 index)
+     */
     public static IndexWriter INDEX_WRITER;
     
     static {
@@ -62,5 +72,43 @@ public class IndexManager {
         } catch (IOException ex) {
             Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        CLOSE_THREAD = new Thread(){
+            @Override
+            public void run(){
+                synchronized(INDEX_MAP){
+                    List<String> keys = new CopyOnWriteArrayList<String>();
+                    INDEX_MAP.forEachEntry(1, entry ->{
+                        if(entry.getValue().isFree()){
+                            keys.add(entry.getKey());
+                        }
+                    });
+                    keys.forEach(str -> INDEX_MAP.remove(str).close());
+                }
+            }
+        };
+        CLOSE_THREAD.start();
+    }
+    
+    public static CustomIndex getIndex(String indexName){
+        CustomIndex index = null;
+        
+        if(INDEX_MAP.containsKey(indexName)){
+            index = INDEX_MAP.get(indexName);
+        }
+        else{
+            synchronized(INDEX_MAP){
+                if(INDEX_MAP.containsKey(indexName)){
+                    index = INDEX_MAP.get(indexName);
+                }
+                else{
+                    index = new CustomIndex(indexName);
+                    INDEX_MAP.put(indexName, index);
+                }
+            }
+        }
+        
+        index.use();
+        return index;
     }
 }

@@ -16,6 +16,7 @@
 package cn.venyo.spark;
 
 import cn.venyo.HtmlPage;
+import cn.venyo.index.CustomIndex;
 import cn.venyo.index.IndexManager;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class Action {
     
     public static Object index(Request request, Response response){
         try{
+            String indexName = request.params(":index");
             String url = request.queryMap("url").value();
             String content = request.queryMap("content").value();
             String title = request.queryMap("title").value();
@@ -73,7 +75,15 @@ public class Action {
             if(desc != null && !desc.isEmpty()){
                 doc.add((new Field("desc", desc.toLowerCase(), TextField.TYPE_STORED)));
             }
-            IndexManager.INDEX_WRITER.updateDocument(new Term("id", id), doc);
+            if(indexName != null && !indexName.isEmpty()){
+                CustomIndex index = IndexManager.getIndex(indexName);
+                index.getIndexWriter().updateDocument(new Term("id", id), doc);
+                index.getIndexWriter().commit();
+                index.release();
+            }
+            else{
+                IndexManager.INDEX_WRITER.updateDocument(new Term("id", id), doc);
+            }
 
             LOGGER.info("indexed: " + url);
             return true;
@@ -93,8 +103,10 @@ public class Action {
         }
 
         try{
+            String indexName = request.params(":index");
             Analyzer analyzer = new AnsjAnalyzer(TYPE.index_ansj);
-            Directory directory = FSDirectory.open(Paths.get("index"));
+            Directory directory = indexName != null && !indexName.isEmpty() ? 
+                    FSDirectory.open(Paths.get("custom/" + indexName)): FSDirectory.open(Paths.get("index"));
             DirectoryReader ireader = DirectoryReader.open(directory);
             IndexSearcher isearcher = new IndexSearcher(ireader);
             MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{"content", "title", "keywords", "desc"}, analyzer);

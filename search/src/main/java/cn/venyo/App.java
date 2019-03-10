@@ -31,8 +31,12 @@ public class App
         get("/health", ((request, response) -> "ok"));
         
         post("/index", Action::index);
+        
+        post("/:index/index", Action::index);
 
         get("/search", Action::search, new JsonTransformer());
+        
+        get("/:index/search", Action::search, new JsonTransformer());
         
         get("/count", Action::count);
     }
