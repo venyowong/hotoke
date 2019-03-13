@@ -208,7 +208,7 @@ namespace Hotoke.MainSite
                     {
                         if(r.Title == result.Title || r.Title.SimilarWith(result.Title))
                         {
-                            if(Utility.BadUrls.Contains(r.Url))
+                            if(r.Url.ContainsAny(Utility.BadUrls))
                             {
                                 r.Url = result.Url;
                             }

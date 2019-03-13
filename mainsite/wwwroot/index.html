@@ -86,25 +86,7 @@
                 }
                 let url = `${window.location.origin}/search?keyword=${encodeURIComponent(app.keyword)}&requestId=${encodeURIComponent(requestId)}`;
                 if(requestId){
-                    url = `${window.location.origin}/search?requestId=${encodeURIComponent(requestId)}`
-
-                    time = 0;
-                    while(time < 3){
-                        time = time + 1;
-                        $.get(`${window.location.origin}/search/count?requestId=${encodeURIComponent(requestId)}`,
-                        function(count){
-                            if(count > searched){
-                                break;
-                            }
-                            else {
-                                if(time > 3){
-                                    return;
-                                }
-
-                                continue;
-                            }
-                        });
-                    }
+                    url = `${window.location.origin}/search?requestId=${encodeURIComponent(requestId)}`;
                 }
                 $.get(url,
                 function(data){
@@ -112,7 +94,7 @@
                         app.results = data.results;
                         if(data.finished == false && data.requestId){
                             setTimeout(() => {
-                                sendRequest(data.requestId, date.searched);
+                                sendRequest(data.requestId, data.searched);
                             }, 300);
                         }
                     }

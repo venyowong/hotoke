@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using Hotoke.Common;
 using Hotoke.MainSite.Models;
 
@@ -15,7 +17,7 @@ namespace Hotoke.MainSite
             {
                 BadUrls = ConfigurationManager.AppSettings["badurls"].Split(';');
             }
-            finally
+            catch(Exception)
             {
                 BadUrls = new string[0];
             }
@@ -40,6 +42,24 @@ namespace Hotoke.MainSite
                 newModel.Results.AddRange(model.Results);
             }
             return newModel;
+        }
+
+        public static bool ContainsAny(this string str, IEnumerable<string> strs)
+        {
+            if(string.IsNullOrWhiteSpace(str) || strs == null || strs.Count() <= 0)
+            {
+                return false;
+            }
+
+            foreach(var s in strs)
+            {
+                if(str.Contains(s))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
