@@ -1,0 +1,12 @@
+{
+    "ID":"83d81a8c8ef1460e8df16974dc0d4229",
+    "ActionKeyword":"ho",
+    "Name":"hotoke",
+    "Description":"hotoke search",
+    "Author":"venyo wong",
+    "Version":"1.0.0",
+    "Language":"csharp",
+    "Website":"https://venyo.cn",
+    "IcoPath": "logo.png",
+    "ExecuteFileName":"PluginManagement.dll"
+  }
