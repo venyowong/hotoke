@@ -134,7 +134,9 @@ public class Action {
     
     public static int count(Request request, Response response){
         try{
-            Directory directory = FSDirectory.open(Paths.get("index"));
+            String indexName = request.params(":index");
+            Directory directory = indexName != null && !indexName.isEmpty() ? 
+                    FSDirectory.open(Paths.get("custom/" + indexName)): FSDirectory.open(Paths.get("index"));
             DirectoryReader ireader = DirectoryReader.open(directory);
             int result = ireader.maxDoc();
             ireader.close();

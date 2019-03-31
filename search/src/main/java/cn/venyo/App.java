@@ -39,5 +39,7 @@ public class App
         get("/:index/search", Action::search, new JsonTransformer());
         
         get("/count", Action::count);
+        
+        get("/:index/count", Action::count);
     }
 }
