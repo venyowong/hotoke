@@ -1,0 +1,14 @@
+{
+  "name": "BookmarkSearch",
+  "version": "1.0",
+  "description": "bookmark search",
+  "permissions": [
+    "bookmarks"
+  ],
+  "browser_action": {
+      "default_title": "BookmarkSearch",
+      "default_icon": "icon.png",
+      "default_popup": "popup.html"
+  },
+  "manifest_version": 2
+}

@@ -197,9 +197,9 @@ namespace Patu
                     {
                         Url = seed,
                         Uri = new Uri(seed),
-                        Content = Utility.FetchHtml(seed, this.httpClientFactory?.GetHttpClient()),
                         Document = new HtmlDocument()
                     };
+                    page.Content = Utility.FetchHtml(seed, this.httpClientFactory?.GetHttpClient());
                     page.Document.LoadHtml(page.Content);
                     this.processor.Process(page, this);
                 }

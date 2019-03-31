@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MainSite
+namespace Hotoke.MainSite
 {
     public class Startup
     {
@@ -32,19 +32,17 @@ namespace MainSite
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddMvcCore()
-                .AddAuthorization()
-                .AddJsonFormatters()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer", options =>
-                {
-                    options.Authority = this.Configuration["Jwt:Authority"];
-                    options.RequireHttpsMetadata = false;
+            services.AddOptions();
+            services.Configure<AppSettings>(this.Configuration);
 
-                    options.Audience = this.Configuration["Jwt:Audience"];
-                });
+            services.AddCors(o => o.AddPolicy("Default", builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,7 +64,7 @@ namespace MainSite
             app.UseDefaultFiles(defaultFile);
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            app.UseAuthentication();
+            app.UseCors("Default");
 
             app.UseMvc(routes =>
             {

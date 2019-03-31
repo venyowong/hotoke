@@ -1,0 +1,49 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="bootstrap.min.css">
+		<script src="jquery-3.3.1.min.js"></script>
+		<script src="popper.min.js"></script>
+		<script src="bootstrap.min.js"></script>
+		<script src="md5.js"></script>
+		<script src="popup.js"></script>
+	</head>
+	<body style="width: 300px;height: 400px;" class="container">
+		<label id="error" style="color:crimson;display:none"></label>
+		<div id="login_page">
+			<form>
+				<div class="form-group">
+					<label for="email">Email address</label>
+					<input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter email">
+				</div>
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input type="password" class="form-control" id="password" placeholder="Password">
+				</div>
+				<input id="login_button" type="button" class="btn btn-primary" value="Login"></button>
+			</form>
+		</div>
+
+		<div id="main_page" style="margin-top:10px">
+			<div>
+				<label id="email_label">Email</label>
+				<input id="index_button" type="button" class="btn btn-primary btn-sm" value="Index"></input>
+			</div>
+			<form class="form-inline" style="margin-top: 10px">
+				<div class="form-group mb-2">
+					<label for="keyword" class="sr-only">Keyword</label>
+					<input type="text" class="form-control" id="keyword" placeholder="keyword">
+				</div>
+				<input id="search_button" type="button" class="btn btn-primary btn-sm mb-2" style="margin-left: 3px" value="Search"></input>
+			</form>
+			<div class="list-group" id="results">
+			</div>
+			<a id="result_template" href="#" class="list-group-item list-group-item-action flex-column align-items-start" style="display:none">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 class="mb-1">Title</h5>
+				</div>
+				<p class="mb-1">Desc</p>
+				<small>Url</small>
+			</a>
+		</div>
+	</body>
+</html>

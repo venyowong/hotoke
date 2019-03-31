@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using NLog.Web;
 using System.Diagnostics;
 
-namespace MainSite
+namespace Hotoke.MainSite
 {
     public class Program
     {

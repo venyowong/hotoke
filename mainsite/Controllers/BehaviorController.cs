@@ -6,6 +6,7 @@ using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using StanSoft;
 
 namespace Hotoke.MainSite.Controllers
@@ -13,52 +14,24 @@ namespace Hotoke.MainSite.Controllers
     public class BehaviorController : Controller
     {
         private readonly ILogger<BehaviorController> logger;
-        private readonly IConfiguration configuration;
+        private readonly AppSettings appSettings;
 
-        public BehaviorController(ILogger<BehaviorController> logger, IConfiguration configuration)
+        public BehaviorController(ILogger<BehaviorController> logger, IOptions<AppSettings> appSettings)
         {
             this.logger = logger;
-            this.configuration = configuration;
+            this.appSettings = appSettings.Value;
         }
 
         [HttpPost]
         public void Browse(string url)
         {
-            if(string.IsNullOrWhiteSpace(url))
+            var data = Utility.GenerateHtmlDic(url);
+            if(data == null)
             {
                 return;
             }
 
-            var data = new Dictionary<string, string>();
-            data.Add("url", url);
-            var html = HttpUtility.FetchHtml(new Uri(url));
-            var article = Html2Article.GetArticle(html);
-            data.Add("content", article.Content);
-            var document = new HtmlDocument();
-            document.LoadHtml(html);
-            var head = document.DocumentNode.SelectSingleNode("//head");
-            var title = head?.SelectSingleNode("//title");
-            if(title == null)
-            {
-                return;
-            }
-
-            data.Add("title", title.InnerText.Trim());
-            var keywords = head?.SelectSingleNode("//meta[@name='keywords']");
-            if(keywords != null)
-            {
-                data.Add("keywords", string.Join(',', keywords.Attributes["Content"]?.Value
-                    .Split(',', ';', ' ')
-                    .Where(keyword => !string.IsNullOrWhiteSpace(keyword))
-                    .Select(keyword => keyword.Trim())));
-            }
-            var description = head?.SelectSingleNode("//meta[@name='description']");
-            if(description != null)
-            {
-                data.Add("desc", description.Attributes["Content"]?.Value.Trim());
-            }
-
-            HttpUtility.Post($"{this.configuration["SearchHost"]}/index", data);
+            HttpUtility.Post($"{this.appSettings.SearchHost}/index", data);
         }
     }
 }

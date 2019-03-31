@@ -96,6 +96,29 @@ namespace Hotoke.Common
             }
         }
 
+        public static T Get<T>(string url)
+        {
+            var json = FetchHtml(new Uri(url));
+            if(string.IsNullOrWhiteSpace(json))
+            {
+                return default(T);
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(json);
+            }
+            catch(Exception)
+            {
+                return default(T);
+            }
+        }
+
+        public static string Get(string url)
+        {
+            return FetchHtml(new Uri(url));
+        }
+
         private static string CollectCookie(this HttpHeaders headers, string key, string cookie)
         {
             headers.TryGetValues(key, out IEnumerable<string> cookies);

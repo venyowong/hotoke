@@ -1,6 +1,6 @@
 using System;
 
-namespace MainSite.Models
+namespace Hotoke.MainSite.Models
 {
     public class ErrorViewModel
     {

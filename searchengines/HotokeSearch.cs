@@ -8,12 +8,24 @@ namespace Hotoke.SearchEngines
 {
     public class HotokeSearch : ISearchEngine
     {
+        private string host;
+
         public string Name => "hotoke";
+
+        public HotokeSearch()
+        {
+            this.host = ConfigurationManager.AppSettings["hotokesearch"];
+        }
+
+        public HotokeSearch(string host)
+        {
+            this.host = host;
+        }
 
         public IEnumerable<SearchResult> Search(string keyword, bool english = false)
         {
             var json = HttpUtility.FetchHtml(new Uri(
-                $"{ConfigurationManager.AppSettings["hotokesearch"]}/search?keyword={System.Web.HttpUtility.UrlEncode(keyword)}"));
+                $"{this.host}/search?keyword={System.Web.HttpUtility.UrlEncode(keyword)}"));
             if(string.IsNullOrWhiteSpace(json))
             {
                 return null;
