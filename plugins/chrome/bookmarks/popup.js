@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		$.ajax({
 			type: "get",
-			url: `https://venyo.cn/bookmark/search?keyword=${keyword}`,
+			url: `https://venyo.cn/bookmark/search?keyword=${encodeURIComponent(keyword)}`,
 			headers: {"access-token": user.token},
 			success: function(data){
 				if(data){
