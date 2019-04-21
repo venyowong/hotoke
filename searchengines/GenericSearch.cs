@@ -35,7 +35,7 @@ namespace Hotoke.SearchEngines
             var lang = english ? "en" : "cn";
             var ensearch = english ? "1" : "0";
             var url = this.baseUrl.Replace("{keyword}", keyword).Replace("{lang}", lang).Replace("{ensearch}", ensearch);
-            var html = HttpUtility.FetchHtml(new Uri(string.Format(
+            var html = HttpUtility.Get(new Uri(string.Format(
                 url, System.Web.HttpUtility.UrlEncode(keyword), lang)));
             if(string.IsNullOrWhiteSpace(html))
             {

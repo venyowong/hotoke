@@ -4,6 +4,7 @@ using System.Configuration;
 using Hotoke.Common;
 using Hotoke.MainSite;
 using Hotoke.MainSite.Attributes;
+using Hotoke.MainSite.Queries;
 using Hotoke.SearchEngines;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ namespace Hotoke.MainSite.Controllers
         }
 
         [HttpPost]
-        public bool Upsert(string url)
+        public bool Upsert(string url, string path, string title)
         {
             var data = Utility.GenerateHtmlDic(url);
             if(data == null)
@@ -33,10 +34,14 @@ namespace Hotoke.MainSite.Controllers
 
             try
             {
-                HttpUtility.Post($"{this.appSettings.SearchHost}/{this.HttpContext.Items["user_id"]}/index", data);
+                var userId = this.HttpContext.Items["user_id"].ToString();
+                data.Add("user_id", userId);
+                data.Add("path", path);
+                data.Add("remark", title);
+                HttpUtility.PostJson($"{this.appSettings.EsHost}/bookmark/bookmark/{userId}-{path.GetHashCode()}", data);
                 return true;
             }
-            catch(Exception)
+            catch(Exception e)
             {
                 return false;
             }
@@ -48,9 +53,9 @@ namespace Hotoke.MainSite.Controllers
             {
                 return null;
             }
-
-            return new HotokeSearch($"{this.appSettings.SearchHost}/{this.HttpContext.Items["user_id"]}")
-                .Search(keyword);
+            
+            return new ElasticSearch().Search("bookmark", BookmarkQueryBuilder.BuildKeywordQuery(
+                this.HttpContext.Items["user_id"].ToString(), keyword));
         }
     }
 }

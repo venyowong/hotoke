@@ -43,7 +43,7 @@ namespace Hotoke.Common
             JsonSettings.Formatting = Formatting.Indented;
         }
 
-        public static string FetchHtml(Uri uri, HttpClient client = null)
+        public static string Get(Uri uri, HttpClient client = null)
         {
             if(client == null)
             {
@@ -98,7 +98,7 @@ namespace Hotoke.Common
 
         public static T Get<T>(string url)
         {
-            var json = FetchHtml(new Uri(url));
+            var json = Get(new Uri(url));
             if(string.IsNullOrWhiteSpace(json))
             {
                 return default(T);
@@ -116,7 +116,7 @@ namespace Hotoke.Common
 
         public static string Get(string url)
         {
-            return FetchHtml(new Uri(url));
+            return Get(new Uri(url));
         }
 
         private static string CollectCookie(this HttpHeaders headers, string key, string cookie)
@@ -157,6 +157,19 @@ namespace Hotoke.Common
             return HttpClient.PostAsync(new Uri(url), 
                 data != null ? new FormUrlEncodedContent(data) : null)
                 ?.Result?.Content?.ReadAsStringAsync()?.Result;
+        }
+
+        public static string PostJson(string url, object data)
+        {
+            if(string.IsNullOrWhiteSpace(url))
+            {
+                return string.Empty;
+            }
+
+            return HttpClient.PostAsync(new Uri(url), 
+                data != null ? new StringContent(JsonConvert.SerializeObject(data), 
+                Encoding.UTF8, "application/json") : null)?.Result?.Content
+                ?.ReadAsStringAsync()?.Result;
         }
     }
 }

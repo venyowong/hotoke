@@ -71,12 +71,12 @@ namespace Patu
         public static HttpClient HttpClient = new HttpClient();
         private static Regex CharSetRegex = new Regex("charset=\"([^\"]+)", RegexOptions.IgnoreCase);
 
-        public static string FetchHtml(string url, HttpClient client = null)
+        public static string Get(string url, HttpClient client = null)
         {
-            return FetchHtml(new Uri(url), client);
+            return Get(new Uri(url), client);
         }
 
-        public static string FetchHtml(Uri uri, HttpClient client = null)
+        public static string Get(Uri uri, HttpClient client = null)
         {
             if(client == null)
             {
@@ -149,7 +149,7 @@ namespace Patu
 
         public static T HttpGet<T>(string url)
         {
-            var json = FetchHtml(url);
+            var json = Get(url);
             if(string.IsNullOrWhiteSpace(json))
             {
                 return default(T);

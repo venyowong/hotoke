@@ -24,7 +24,7 @@ namespace Hotoke.SearchEngines
 
         public IEnumerable<SearchResult> Search(string keyword, bool english = false)
         {
-            var json = HttpUtility.FetchHtml(new Uri(
+            var json = HttpUtility.Get(new Uri(
                 $"{this.host}/search?keyword={System.Web.HttpUtility.UrlEncode(keyword)}"));
             if(string.IsNullOrWhiteSpace(json))
             {

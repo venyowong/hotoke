@@ -199,7 +199,7 @@ namespace Patu
                         Uri = new Uri(seed),
                         Document = new HtmlDocument()
                     };
-                    page.Content = Utility.FetchHtml(seed, this.httpClientFactory?.GetHttpClient());
+                    page.Content = Utility.Get(seed, this.httpClientFactory?.GetHttpClient());
                     page.Document.LoadHtml(page.Content);
                     this.processor.Process(page, this);
                 }

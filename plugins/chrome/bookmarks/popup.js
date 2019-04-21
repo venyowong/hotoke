@@ -21,7 +21,12 @@ function show_main_page(user){
 
 function collectBookmarks(prefix, node, bookmarks){
 	if(node.url){
-		bookmarks.push({path: prefix, title: node.title, url: node.url})
+		if(prefix){
+			bookmarks.push({path: `${prefix}>${node.title}`, title: node.title, url: node.url})
+		}
+		else{
+			bookmarks.push({path: node.title, title: node.title, url: node.url})
+		}
 	}
 
 	if(node.children && node.children.length > 0){
@@ -75,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					$.ajax({
 						type: "post",
 						url: "https://venyo.cn/bookmark/upsert",
-						data: {url: bookmarks[i].url},
+						data: {url: bookmarks[i].url, path: bookmarks[i].path, title: bookmarks[i].title},
 						headers: {"access-token": user.token},
 						success: function(){
 							indexed++;

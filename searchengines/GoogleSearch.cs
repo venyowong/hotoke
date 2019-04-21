@@ -46,7 +46,7 @@ namespace Hotoke.SearchEngines
         public IEnumerable<SearchResult> Search(string keyword, bool english = false)
         {
             var hl = english ? "us-en" : "zh-cn";
-            var html = HttpUtility.FetchHtml(new Uri(string.Format(
+            var html = HttpUtility.Get(new Uri(string.Format(
                 ConfigurationManager.AppSettings["googlesearch"] ?? "https://www.google.com.hk/search?hl={0}&q={1}",
                 hl, System.Web.HttpUtility.UrlEncode(keyword))), HttpClient);
             if(string.IsNullOrWhiteSpace(html))

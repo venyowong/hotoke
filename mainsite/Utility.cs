@@ -75,7 +75,7 @@ namespace Hotoke.MainSite
 
             var data = new Dictionary<string, string>();
             data.Add("url", url);
-            var html = HttpUtility.FetchHtml(new Uri(url));
+            var html = HttpUtility.Get(new Uri(url));
             var article = Html2Article.GetArticle(html);
             data.Add("content", article.Content);
             var document = new HtmlDocument();
@@ -99,7 +99,7 @@ namespace Hotoke.MainSite
             var description = head?.SelectSingleNode("//meta[@name='description']");
             if(description != null)
             {
-                data.Add("desc", description.Attributes["Content"]?.Value.Trim());
+                data.Add("description", description.Attributes["Content"]?.Value.Trim());
             }
 
             return data;
