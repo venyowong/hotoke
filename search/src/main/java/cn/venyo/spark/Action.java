@@ -20,7 +20,9 @@ import cn.venyo.index.CustomIndex;
 import cn.venyo.index.IndexManager;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.ansj.lucene7.AnsjAnalyzer;
 import org.ansj.lucene7.AnsjAnalyzer.TYPE;
 import org.apache.lucene.analysis.Analyzer;
@@ -48,6 +50,15 @@ import spark.Response;
  */
 public class Action {
     private static Logger LOGGER = LoggerFactory.getLogger(Action.class);
+    private static final String[] FIELDS = new String[]{"content", "title", "keywords", "desc"};
+    private static final Map<String, Float> BOOSTS = new HashMap<String, Float>();
+    
+    static {
+        BOOSTS.put("content", 0.3f);
+        BOOSTS.put("title", 1.5f);
+        BOOSTS.put("keywords", 1.3f);
+        BOOSTS.put("desc", 0.5f);
+    }
     
     public static Object index(Request request, Response response){
         try{
@@ -94,6 +105,7 @@ public class Action {
         }
     }
     
+    
     public static Object search(Request request, Response response){
         List<HtmlPage> results = new ArrayList<>();
 
@@ -109,9 +121,9 @@ public class Action {
                     FSDirectory.open(Paths.get("custom/" + indexName)): FSDirectory.open(Paths.get("index"));
             DirectoryReader ireader = DirectoryReader.open(directory);
             IndexSearcher isearcher = new IndexSearcher(ireader);
-            MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{"content", "title", "keywords", "desc"}, analyzer);
+            MultiFieldQueryParser parser = new MultiFieldQueryParser(FIELDS, analyzer, BOOSTS);
             Query query = parser.parse(keyword.toLowerCase());
-            ScoreDoc[] hits = isearcher.search(query, 3, new Sort()).scoreDocs;
+            ScoreDoc[] hits = isearcher.search(query, 5, new Sort()).scoreDocs;
 
             for (int i = 0; i < hits.length; i++) {
                 Document hitDoc = isearcher.doc(hits[i].doc);
