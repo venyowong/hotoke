@@ -18,7 +18,6 @@ namespace Hotoke.MainSite
         private static readonly Logger _logger = LogManager.GetLogger("SearchManager", typeof(SearchManager));
         private static volatile MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private static readonly List<ISearchEngine> _engines = new List<ISearchEngine>();
-        private static readonly bool _useImmortalTask;
         private static readonly Dictionary<string, float> _factorDic = new Dictionary<string, float>();
 
         static SearchManager()
@@ -30,29 +29,32 @@ namespace Hotoke.MainSite
                 if(strs.Length > 1 && float.TryParse(strs[1], out float factor))
                 {
                     _factorDic.TryAdd(engine, factor);
+                    _logger.Info($"Adding search engine {engine}, search factor: {_factorDic[engine]}");
                 }
                 else
                 {
                     _factorDic.TryAdd(engine, 1f);
+                    _logger.Info($"Adding search engine {engine}, search factor: 1.0");
                 }
 
                 switch(engine)
                 {
                     case "google":
+                        _logger.Info("Parsed as GoogleSearch");
                         return new GoogleSearch();
                     case "hotoke":
+                        _logger.Info("Parsed as HotokeSearch");
                         return new HotokeSearch();
                     case "360":
                     case "baidu":
                     case "bing":
                     default:
+                        _logger.Info("Parsed as GenericSearch");
                         return new GenericSearch(engine);
                 }
             })
             .Where(engine => engine != null)
             .ToList();
-
-            bool.TryParse(ConfigurationManager.AppSettings["useimmortaltask"], out _useImmortalTask);
         }
 
         public static SearchResultModel GetSearchResult(string keyword)
@@ -72,30 +74,15 @@ namespace Hotoke.MainSite
             result.Results = new List<SearchResult>();
             var spinLock = new SpinLock(false);
 
-            if(!_useImmortalTask)
+            Task.Run(() =>
             {
-                Task.Run(() =>
+                Parallel.ForEach(_engines, engine =>
                 {
-                    Parallel.ForEach(_engines, engine =>
-                    {
-                        SearchPerEngine(engine, keyword, english, result, spinLock);
-                    });
-
-                    result.Finished = true;
+                    SearchPerEngine(engine, keyword, english, result, spinLock);
                 });
-            }
-            else
-            {
-                Task.Run(() =>
-                {
-                    ParallelUtility.ForEach(_engines, engine =>
-                    {
-                        SearchPerEngine(engine, keyword, english, result, spinLock);
-                    });
 
-                    result.Finished = true;
-                });
-            }
+                result.Finished = true;
+            });
 
             SpinWait.SpinUntil(() => result.Searched > 0 || result.Finished);
 
@@ -144,18 +131,10 @@ namespace Hotoke.MainSite
             try
             {
                 var searchResults = engine.Search(keyword, english);
-                if(searchResults == null)
+                if(searchResults == null || searchResults.Count() <= 0)
                 {
+                    _logger.Warn($"The result is null or empty, when searching {keyword} by {engine.Name}");
                     return;
-                }
-
-                // 由于 hotoke 只爬取自己所感兴趣的内容，所以对于普遍的搜索来说
-                // 搜索效果较为无法令人满意，因此 hotoke 不能第一个展示出来
-                // 这样也能让其他第一个结束的搜索引擎在 merge 的时候，不用去重
-                // 可以快速地响应
-                if(result.Results.Count == 0 && engine.Name == "hotoke")
-                {
-                    SpinWait.SpinUntil(() => result.Results.Count > 0);
                 }
 
                 _logger.Info($"count of {engine.Name} results: {searchResults.Count()}");
