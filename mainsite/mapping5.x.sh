@@ -13,22 +13,26 @@ curl -XPUT http://localhost:9200/bookmark/ -d '
 				"title":{
 					"type": "text",
 					"analyzer" : "ik_max_word",
-                    "search_analyzer": "ik_max_word"
+                    "search_analyzer": "ik_max_word",
+					"fielddata": true
 				},
 				"keywords":{
 					"type": "text",
 					"analyzer" : "ik_max_word",
-                    "search_analyzer": "ik_max_word"
+                    "search_analyzer": "ik_max_word",
+					"fielddata": true
 				},
 				"description":{
 					"type": "text",
 					"analyzer" : "ik_max_word",
-                    "search_analyzer": "ik_max_word"
+                    "search_analyzer": "ik_max_word",
+					"fielddata": true
 				},
 				"content":{
 					"type": "text",
 					"analyzer" : "ik_max_word",
-                    "search_analyzer": "ik_max_word"
+                    "search_analyzer": "ik_max_word",
+					"fielddata": true
 				},
                 "user_id":{
                     "type": "keyword"
@@ -39,7 +43,8 @@ curl -XPUT http://localhost:9200/bookmark/ -d '
 				"remark":{
 					"type": "text",
 					"analyzer" : "ik_max_word",
-                    "search_analyzer": "ik_max_word"
+                    "search_analyzer": "ik_max_word",
+					"fielddata": true
 				}
 			}
 		}
