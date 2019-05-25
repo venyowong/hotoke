@@ -41,7 +41,7 @@ namespace Hotoke.MainSite.Controllers
                 HttpUtility.PostJson($"{this.appSettings.EsHost}/bookmark/bookmark/{userId}-{path.GetHashCode()}", data);
                 return true;
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 return false;
             }

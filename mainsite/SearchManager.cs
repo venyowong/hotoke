@@ -72,13 +72,12 @@ namespace Hotoke.MainSite
             _cache.Set(requestId, result, new TimeSpan(0, 1, 0));
             var english = !keyword.HasOtherLetter();
             result.Results = new List<SearchResult>();
-            var spinLock = new SpinLock(false);
 
             Task.Run(() =>
             {
                 Parallel.ForEach(_engines, engine =>
                 {
-                    SearchPerEngine(engine, keyword, english, result, spinLock);
+                    SearchPerEngine(engine, keyword, english, result);
                 });
 
                 result.Finished = true;
@@ -87,19 +86,16 @@ namespace Hotoke.MainSite
             SpinWait.SpinUntil(() => result.Searched > 0 || result.Finished);
 
             SearchResultModel newResult = null;
-            var gotlock = false;
             try
             {
-                spinLock.Enter(ref gotlock);
-                newResult = result.Copy();
+                lock(result)
+                {
+                    newResult = result.Copy();
+                }
             }
             catch(Exception e)
             {
                 _logger.Error(e, "catched an exception when copying result.");
-            }
-            finally
-            {
-                spinLock.Exit();
             }
             return newResult;
         }
@@ -126,7 +122,7 @@ namespace Hotoke.MainSite
         }
 
         private static void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
-            SearchResultModel result, SpinLock spinLock)
+            SearchResultModel result)
         {
             try
             {
@@ -138,19 +134,16 @@ namespace Hotoke.MainSite
                 }
 
                 _logger.Info($"count of {engine.Name} results: {searchResults.Count()}");
-                var gotlock = false;
                 try
                 {
-                    spinLock.Enter(ref gotlock);
-                    MergeResult(keyword, searchResults, result.Results, _factorDic[engine.Name]);
+                    lock(result)
+                    {
+                        MergeResult(keyword, searchResults, result.Results, _factorDic[engine.Name]);
+                    }
                 }
                 catch(Exception e)
                 {
                     _logger.Error(e, "catched an exception when merging result.");
-                }
-                finally
-                {
-                    spinLock.Exit();
                 }
                 _logger.Info($"{engine.Name} results merged.");
                 var count = result.Searched;

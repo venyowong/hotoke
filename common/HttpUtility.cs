@@ -1,19 +1,44 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
+using Hotoke.Common.HttpClientFactories;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Hotoke.Common
 {
     public static class HttpUtility
     {
-        private static HttpClient HttpClient = new HttpClient();
+        private static bool _useProxy = false;
+        private static IHttpClientFactory _httpClientFactory = new ContinuousProxyFactory(() =>
+        {
+            return Get<JObject>(ConfigurationManager.AppSettings["ProxyPoolUrl"])?["http"]?.ToString();
+        });
+        private static HttpClient _httpClient = new HttpClient();
+        public static HttpClient HttpClient
+        {
+            get
+            {
+                HttpClient httpClient = null;
+                if(_useProxy)
+                {
+                    httpClient = _httpClientFactory.GetHttpClient();
+                } 
+                if(httpClient == null)
+                {
+                    httpClient = _httpClient;
+                }
+
+                return httpClient;
+            }
+        }
         private static JsonSerializerSettings JsonSettings;
         private static Random Random = new Random();
         private static Regex CharSetRegex = new Regex("charset=\"([^\"]+)", RegexOptions.IgnoreCase);
@@ -41,6 +66,8 @@ namespace Hotoke.Common
             JsonSettings = new JsonSerializerSettings();
             JsonSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             JsonSettings.Formatting = Formatting.Indented;
+
+            bool.TryParse(ConfigurationManager.AppSettings["useproxy"], out _useProxy);
         }
 
         public static string Get(Uri uri, HttpClient client = null)
