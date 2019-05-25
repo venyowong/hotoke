@@ -17,17 +17,18 @@ namespace Hotoke.Common
     public static class HttpUtility
     {
         private static bool _useProxy = false;
+        private static HttpClient _httpClient = new HttpClient();
         private static IHttpClientFactory _httpClientFactory = new ContinuousProxyFactory(() =>
         {
-            return Get<JObject>(ConfigurationManager.AppSettings["ProxyPoolUrl"])?["http"]?.ToString();
+            // 此处必须传 httpclient 参数，否则会死循环
+            return Get<JObject>(ConfigurationManager.AppSettings["ProxyPoolUrl"], _httpClient)?["http"]?.ToString();
         });
-        private static HttpClient _httpClient = new HttpClient();
         public static HttpClient HttpClient
         {
             get
             {
                 HttpClient httpClient = null;
-                if(_useProxy)
+                if(_useProxy )
                 {
                     httpClient = _httpClientFactory.GetHttpClient();
                 } 
@@ -35,7 +36,10 @@ namespace Hotoke.Common
                 {
                     httpClient = _httpClient;
                 }
-
+                else
+                {
+                    httpClient.Timeout = new TimeSpan(0, 0, 2);
+                }
                 return httpClient;
             }
         }
@@ -68,6 +72,8 @@ namespace Hotoke.Common
             JsonSettings.Formatting = Formatting.Indented;
 
             bool.TryParse(ConfigurationManager.AppSettings["useproxy"], out _useProxy);
+
+            _httpClient.Timeout = new TimeSpan(0, 0, 2);
         }
 
         public static string Get(Uri uri, HttpClient client = null)
@@ -123,9 +129,9 @@ namespace Hotoke.Common
             }
         }
 
-        public static T Get<T>(string url)
+        public static T Get<T>(string url, HttpClient client = null)
         {
-            var json = Get(new Uri(url));
+            var json = Get(new Uri(url), client);
             if(string.IsNullOrWhiteSpace(json))
             {
                 return default(T);
