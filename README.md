@@ -1,7 +1,7 @@
 # hotoke
 构建自己的搜索引擎
 
-本项目暂时以百度、必应、360的搜索结果为主，也加入了 stackoverflow 的爬虫，爬虫时使用了[async-proxy-pool](https://github.com/chenjiandongx/async-proxy-pool) 代理池
+本项目暂时以百度、必应、360的搜索结果为主
 
 ## [线上 Demo](http://venyo.cn/)
 
@@ -9,17 +9,28 @@
 
 本项目的主体应用为 mainsite 目录下的 asp.net core 项目，启动后即可使用百度、必应、360的综合搜索。
 
-1. 下载或克隆本项目：`git clone https://github.com/venyowong/hotoke.git` 或下载[打包好的文件](https://github.com/venyowong/hotoke/releases/download/alpha-2019.01.05/hotoke.mainsite.zip)
+1. 下载或克隆本项目：`git clone https://github.com/venyowong/hotoke.git`
 2. mainsite 项目依赖 .net core 运行环境，所以需要先[安装 .net core](https://dotnet.microsoft.com/download)
-3. 编辑 mainsite/appsettings.json 配置文件中的 Engines 属性，保留自己想使用的搜索引擎。
-4. 在 mainsite 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet MainSite.dll`(这一步可能需要权限),你将会看到类似以下的输出：
+3. 编辑 mainsite/App.config 配置文件中的 genericengines 属性，保留自己想使用的搜索引擎。
+4. 由于当前将搜索引擎做成了模块，以后添加引擎只需要安装另外的模块即可，而不必重新发布，所以会依赖一个[模块框架 ExtCore](https://github.com/ExtCore/ExtCore)。本人另外一个[项目 ExtCore.Repo](https://github.com/venyowong/ExtCore.Repo)就是一个 ExtCore 的插件库，[实例地址](https://venyo.cn/extcorepo/index.html)。
+
+	4.1 首先安装模块安装工具
+	
+	`dotnet tool install --global ExtCore.Repo.Tool`
+
+	4.2 其次安装通用搜索模块
+
+	`extcorepo -i hotoke.generic`
+5. 在 mainsite 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet MainSite.dll`(这一步可能需要权限),你将会看到类似以下的输出：
     ```
     Hosting environment: 
     Content root path: 
     Now listening on: http://0.0.0.0:80
     Application started. Press Ctrl+C to shut down.
     ```
-5. 打开浏览器，访问 http://localhost 或 http://{your_ip}
+6. 打开浏览器，访问 http://localhost 或 http://{your_ip}
+
+**注：如果要发布的话，可以先 publish 再安装模块**
 
 ## 接入线上 Demo 接口
 
