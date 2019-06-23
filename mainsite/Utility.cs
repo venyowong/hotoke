@@ -5,8 +5,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Hotoke.Common;
+using Hotoke.Common.Entities;
 using Hotoke.MainSite.Models;
-using HtmlAgilityPack;
 using StanSoft;
 
 namespace Hotoke.MainSite
@@ -64,45 +64,6 @@ namespace Hotoke.MainSite
             }
 
             return false;
-        }
-
-        public static Dictionary<string, string> GenerateHtmlDic(string url)
-        {
-            if(string.IsNullOrWhiteSpace(url))
-            {
-                return null;
-            }
-
-            var data = new Dictionary<string, string>();
-            data.Add("url", url);
-            var html = HttpUtility.Get(new Uri(url));
-            var article = Html2Article.GetArticle(html);
-            data.Add("content", article.Content);
-            var document = new HtmlDocument();
-            document.LoadHtml(html);
-            var head = document.DocumentNode.SelectSingleNode("//head");
-            var title = head?.SelectSingleNode("//title");
-            if(title == null)
-            {
-                return null;
-            }
-
-            data.Add("title", title.InnerText.Trim());
-            var keywords = head?.SelectSingleNode("//meta[@name='keywords']");
-            if(keywords != null)
-            {
-                data.Add("keywords", string.Join(',', keywords.Attributes["Content"]?.Value
-                    .Split(',', ';', ' ')
-                    .Where(keyword => !string.IsNullOrWhiteSpace(keyword))
-                    .Select(keyword => keyword.Trim())));
-            }
-            var description = head?.SelectSingleNode("//meta[@name='description']");
-            if(description != null)
-            {
-                data.Add("description", description.Attributes["Content"]?.Value.Trim());
-            }
-
-            return data;
         }
 
         public static string GetMd5Hash(this string input)

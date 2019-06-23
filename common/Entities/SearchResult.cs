@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Hotoke.Common
+namespace Hotoke.Common.Entities
 {
     public class SearchResult
     {

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Hotoke.Common;
 using Hotoke.MainSite.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,16 +7,29 @@ namespace Hotoke.MainSite.Controllers
 {
     public class SearchController : Controller
     {
+        private IEnumerable<ISearchEngine> engines;
+
+        public SearchController(IEnumerable<ISearchEngine> engines)
+        {
+            this.engines = engines;
+        }
+
         [HttpGet]
         public SearchResultModel Index(string keyword, string requestId)
         {
-            return SearchManager.GetSearchResult(requestId, keyword);
+            return new SearchManager(this.engines).GetSearchResult(requestId, keyword);
         }
 
         [HttpGet]
         public int Count(string requestId)
         {
-            return SearchManager.GetSearchResultById(requestId)?.Searched ?? 0;
+            return new SearchManager(this.engines).GetSearchResultById(requestId)?.Searched ?? 0;
+        }
+
+        [HttpGet]
+        public object Engines()
+        {
+            return this.engines;
         }
     }
 }

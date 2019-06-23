@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ExtCore.WebApplication.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,9 +17,12 @@ namespace Hotoke.MainSite
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private string extensionsPath;
+
+        public Startup(IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
             Configuration = configuration;
+            this.extensionsPath = Path.Combine(hostingEnvironment.ContentRootPath, configuration["Extensions:Path"]);
         }
 
         public IConfiguration Configuration { get; }
@@ -32,7 +37,9 @@ namespace Hotoke.MainSite
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddExtCore(this.extensionsPath, true);
+
+            services.AddMvc();
 
             services.AddOptions();
             services.Configure<AppSettings>(this.Configuration);
@@ -65,6 +72,8 @@ namespace Hotoke.MainSite
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseCors("Default");
+
+            app.UseExtCore();
 
             app.UseMvc(routes =>
             {

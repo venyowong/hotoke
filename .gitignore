@@ -654,3 +654,4 @@ ASALocalRun/
 search/index/*
 search/custom/*
 crawlers/patucrawler/patu.yml
+extensions/

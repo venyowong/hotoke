@@ -6,58 +6,45 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Hotoke.MainSite.Models;
-using Hotoke.SearchEngines;
 using Hotoke.Common;
 using NLog;
 using Microsoft.Extensions.Caching.Memory;
+using Hotoke.Common.Entities;
 
 namespace Hotoke.MainSite
 {
-    public static class SearchManager
+    public class SearchManager
     {
         private static readonly Logger _logger = LogManager.GetLogger("SearchManager", typeof(SearchManager));
         private static volatile MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
-        private static readonly List<ISearchEngine> _engines = new List<ISearchEngine>();
+        private readonly IEnumerable<ISearchEngine> engines = null;
         private static readonly Dictionary<string, float> _factorDic = new Dictionary<string, float>();
 
         static SearchManager()
         {
-            _engines = ConfigurationManager.AppSettings["engines"].Split(',').Select<string, ISearchEngine>(engine => 
+            foreach(var engine in ConfigurationManager.AppSettings["factors"].Split(','))
             {
                 var strs = engine.Split(':');
-                engine = strs[0];
+                var name = strs[0];
                 if(strs.Length > 1 && float.TryParse(strs[1], out float factor))
                 {
-                    _factorDic.TryAdd(engine, factor);
-                    _logger.Info($"Adding search engine {engine}, search factor: {_factorDic[engine]}");
+                    _factorDic.TryAdd(name, factor);
+                    _logger.Info($"Adding search engine {name} factor: {_factorDic[name]}");
                 }
                 else
                 {
-                    _factorDic.TryAdd(engine, 1f);
-                    _logger.Info($"Adding search engine {engine}, search factor: 1.0");
+                    _factorDic.TryAdd(name, 1f);
+                    _logger.Info($"Adding search engine {name} factor: 1.0");
                 }
-
-                switch(engine)
-                {
-                    case "google":
-                        _logger.Info("Parsed as GoogleSearch");
-                        return new GoogleSearch();
-                    case "hotoke":
-                        _logger.Info("Parsed as HotokeSearch");
-                        return new HotokeSearch();
-                    case "360":
-                    case "baidu":
-                    case "bing":
-                    default:
-                        _logger.Info("Parsed as GenericSearch");
-                        return new GenericSearch(engine);
-                }
-            })
-            .Where(engine => engine != null)
-            .ToList();
+            }
         }
 
-        public static SearchResultModel GetSearchResult(string keyword)
+        public SearchManager(IEnumerable<ISearchEngine> engines)
+        {
+            this.engines = engines;
+        }
+
+        public SearchResultModel GetSearchResult(string keyword)
         {
             if(string.IsNullOrWhiteSpace(keyword))
             {
@@ -75,7 +62,7 @@ namespace Hotoke.MainSite
 
             Task.Run(() =>
             {
-                Parallel.ForEach(_engines, engine =>
+                Parallel.ForEach(engines, engine =>
                 {
                     SearchPerEngine(engine, keyword, english, result);
                 });
@@ -100,7 +87,7 @@ namespace Hotoke.MainSite
             return newResult;
         }
 
-        public static SearchResultModel GetSearchResult(string requestId, string keyword)
+        public SearchResultModel GetSearchResult(string requestId, string keyword)
         {
             if(string.IsNullOrWhiteSpace(requestId))
             {
@@ -116,12 +103,12 @@ namespace Hotoke.MainSite
             return result;
         }
 
-        public static SearchResultModel GetSearchResultById(string requestId)
+        public SearchResultModel GetSearchResultById(string requestId)
         {
             return GetSearchResult(requestId, string.Empty);
         }
 
-        private static void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
+        private void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
             SearchResultModel result)
         {
             try
@@ -155,7 +142,7 @@ namespace Hotoke.MainSite
             }
         }
 
-        private static void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, 
+        private void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, 
             List<SearchResult> results, float factor)
         {
             if(results.Count == 0)

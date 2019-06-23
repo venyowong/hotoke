@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using Hotoke.Common;
+using Hotoke.Common.Entities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

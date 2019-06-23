@@ -6,7 +6,7 @@ using Hotoke.Common;
 using Hotoke.Common.Entities;
 using HtmlAgilityPack;
 
-namespace Hotoke.SearchEngines
+namespace Hotoke.GenericSearch
 {
     public class GenericSearch : ISearchEngine
     {

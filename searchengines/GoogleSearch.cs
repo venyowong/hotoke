@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Hotoke.Common;
+using Hotoke.Common.Entities;
 using HtmlAgilityPack;
 
 namespace Hotoke.SearchEngines

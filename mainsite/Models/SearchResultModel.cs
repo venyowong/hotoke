@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Hotoke.Common;
+using Hotoke.Common.Entities;
 
 namespace Hotoke.MainSite.Models
 {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using Hotoke.Common;
+using Hotoke.Common.Entities;
 using Newtonsoft.Json;
 
 namespace Hotoke.SearchEngines
