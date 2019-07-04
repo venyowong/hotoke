@@ -20,7 +20,7 @@
 
 	4.2 其次安装通用搜索模块
 
-	`extcorepo -i hotoke.generic`
+	`extcorepo -i hotoke.generic -h https://venyo.cn/extcorepo`
 5. 在 mainsite 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet MainSite.dll`(这一步可能需要权限),你将会看到类似以下的输出：
     ```
     Hosting environment: 
