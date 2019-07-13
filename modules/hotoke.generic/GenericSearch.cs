@@ -35,9 +35,8 @@ namespace Hotoke.GenericSearch
 
             var lang = english ? "en" : "cn";
             var ensearch = english ? "1" : "0";
-            var url = this.baseUrl.Replace("{keyword}", keyword).Replace("{lang}", lang).Replace("{ensearch}", ensearch);
-            var html = HttpUtility.Get(new Uri(string.Format(
-                url, System.Web.HttpUtility.UrlEncode(keyword), lang)));
+            var url = this.baseUrl.Replace("{keyword}", System.Web.HttpUtility.UrlEncode(keyword)).Replace("{lang}", lang).Replace("{ensearch}", ensearch);
+            var html = HttpUtility.Get(url);
             if(string.IsNullOrWhiteSpace(html))
             {
                 return null;
