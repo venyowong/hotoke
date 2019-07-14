@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NLog.Web;
-using System.Diagnostics;
 
 namespace Hotoke.MainSite
 {
@@ -18,30 +16,12 @@ namespace Hotoke.MainSite
     {
         public static void Main(string[] args)
         {
-            var logger = NLog.Web.NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
-            try
-            {
-                CreateWebHostBuilder(args).Build().Run();
-            }
-            catch(Exception e)
-            {
-                logger.Error(e, "Stopped program because of exception");
-            }
-            finally
-            {
-                NLog.LogManager.Shutdown();
-            }
+            CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseUrls(ConfigurationManager.AppSettings["host"] ?? "http://0.0.0.0:80")
-                .ConfigureLogging(logging =>
-                {
-                    logging.ClearProviders();
-                    logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
-                })
-                .UseNLog();
+                .UseUrls(ConfigurationManager.AppSettings["host"] ?? "http://0.0.0.0:80");
     }
 }

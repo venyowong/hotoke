@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Hotoke.Common;
 using Hotoke.MainSite.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Hotoke.MainSite.Controllers
 {

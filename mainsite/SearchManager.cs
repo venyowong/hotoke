@@ -7,15 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hotoke.MainSite.Models;
 using Hotoke.Common;
-using NLog;
 using Microsoft.Extensions.Caching.Memory;
 using Hotoke.Common.Entities;
+using Niolog.Interfaces;
+using Niolog;
 
 namespace Hotoke.MainSite
 {
     public class SearchManager
     {
-        private static readonly Logger _logger = LogManager.GetLogger("SearchManager", typeof(SearchManager));
+        private INiologger logger = NiologManager.CreateLogger();
         private static volatile MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
         private readonly IEnumerable<ISearchEngine> engines = null;
         private static readonly Dictionary<string, float> _factorDic = new Dictionary<string, float>();
@@ -29,12 +30,12 @@ namespace Hotoke.MainSite
                 if(strs.Length > 1 && float.TryParse(strs[1], out float factor))
                 {
                     _factorDic.TryAdd(name, factor);
-                    _logger.Info($"Adding search engine {name} factor: {_factorDic[name]}");
+                    Console.WriteLine($"Adding search engine {name} factor: {_factorDic[name]}");
                 }
                 else
                 {
                     _factorDic.TryAdd(name, 1f);
-                    _logger.Info($"Adding search engine {name} factor: 1.0");
+                    Console.WriteLine($"Adding search engine {name} factor: 1.0");
                 }
             }
         }
@@ -82,7 +83,10 @@ namespace Hotoke.MainSite
             }
             catch(Exception e)
             {
-                _logger.Error(e, "catched an exception when copying result.");
+                logger.Error()
+                    .Message("catched an exception when copying result.")
+                    .Exception(e, true)
+                    .Write();
             }
             return newResult;
         }
@@ -116,11 +120,15 @@ namespace Hotoke.MainSite
                 var searchResults = engine.Search(keyword, english);
                 if(searchResults == null || searchResults.Count() <= 0)
                 {
-                    _logger.Warn($"The result is null or empty, when searching {keyword} by {engine.Name}");
+                    logger.Warn()
+                        .Message($"The result is null or empty, when searching {keyword} by {engine.Name}")
+                        .Write();
                     return;
                 }
 
-                _logger.Info($"count of {engine.Name} results: {searchResults.Count()}");
+                logger.Info()
+                    .Message($"count of {engine.Name} results: {searchResults.Count()}")
+                    .Write();
                 try
                 {
                     lock(result)
@@ -130,15 +138,23 @@ namespace Hotoke.MainSite
                 }
                 catch(Exception e)
                 {
-                    _logger.Error(e, "catched an exception when merging result.");
+                    logger.Error()
+                        .Message("catched an exception when merging result.")
+                        .Exception(e, true)
+                        .Write();
                 }
-                _logger.Info($"{engine.Name} results merged.");
+                logger.Info()
+                    .Message($"{engine.Name} results merged.")
+                    .Write();
                 var count = result.Searched;
                 result.Searched = Interlocked.Increment(ref count);
             }
             catch(Exception e)
             {
-                _logger.Error(e, $"An exception occurred while searching for {keyword}");
+                logger.Error()
+                    .Message($"An exception occurred while searching for {keyword}")
+                    .Exception(e, true)
+                    .Write();
             }
         }
 

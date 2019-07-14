@@ -12,6 +12,10 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Niolog;
+using Niolog.Interfaces;
 
 namespace Hotoke.MainSite
 {
@@ -41,19 +45,18 @@ namespace Hotoke.MainSite
 
             services.AddMvc();
 
-            services.AddOptions();
-            services.Configure<AppSettings>(this.Configuration);
-
-            services.AddCors(o => o.AddPolicy("Default", builder =>
-            {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            }));
+            services.AddOptions()
+                .Configure<AppSettings>(this.Configuration)
+                .AddCors(o => o.AddPolicy("Default", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IOptions<AppSettings> appSettings, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -65,13 +68,24 @@ namespace Hotoke.MainSite
                 app.UseHsts();
             }
 
+            if(appSettings?.Value?.Niolog != null)
+            {
+                NiologManager.DefaultWriters = new ILogWriter[]
+                {
+                    new FileLogWriter(appSettings.Value.Niolog.Path, 10),
+                    new HttpLogWriter(appSettings.Value.Niolog.Url, 10, 1)
+                };
+            }
+
+            loggerFactory.AddProvider(new LoggerProvider());
+
             var defaultFile = new DefaultFilesOptions();  
             defaultFile.DefaultFileNames.Clear();  
             defaultFile.DefaultFileNames.Add("index.html");  
-            app.UseDefaultFiles(defaultFile);
-            app.UseStaticFiles();
-            app.UseCookiePolicy();
-            app.UseCors("Default");
+            app.UseDefaultFiles(defaultFile)
+                .UseStaticFiles()
+                .UseCookiePolicy()
+                .UseCors("Default");
 
             app.UseExtCore();
 

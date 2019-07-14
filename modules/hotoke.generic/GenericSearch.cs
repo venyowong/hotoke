@@ -5,6 +5,7 @@ using System.Linq;
 using Hotoke.Common;
 using Hotoke.Common.Entities;
 using HtmlAgilityPack;
+using Niolog;
 
 namespace Hotoke.GenericSearch
 {
@@ -33,12 +34,20 @@ namespace Hotoke.GenericSearch
                 return null;
             }
 
+            var logger = NiologManager.CreateLogger();
+
             var lang = english ? "en" : "cn";
             var ensearch = english ? "1" : "0";
             var url = this.baseUrl.Replace("{keyword}", System.Web.HttpUtility.UrlEncode(keyword)).Replace("{lang}", lang).Replace("{ensearch}", ensearch);
+            logger.Info()
+                .Message($"{this.Name} url: {url}")
+                .Write();
             var html = HttpUtility.Get(url);
             if(string.IsNullOrWhiteSpace(html))
             {
+                logger.Warn()
+                    .Message($"{this.Name} response is null or white space")
+                    .Write();
                 return null;
             }
 
@@ -47,6 +56,9 @@ namespace Hotoke.GenericSearch
             var nodes = doc.DocumentNode.SelectAllNodes(this.nodesSelection);
             if(nodes == null || nodes.Count <= 0)
             {
+                logger.Warn()
+                    .Message($"cannot select nodes from {this.Name} response")
+                    .Write();
                 return null;
             }
 
