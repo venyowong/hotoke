@@ -61,10 +61,13 @@ namespace Hotoke.MainSite
             var english = !keyword.HasOtherLetter();
             result.Results = new List<SearchResult>();
 
+            var logger = NiologManager.CreateLogger();
             Task.Run(() =>
             {
+                NiologManager.Logger = logger;
                 Parallel.ForEach(engines, engine =>
                 {
+                    NiologManager.Logger = logger;
                     SearchPerEngine(engine, keyword, english, result);
                 });
 
