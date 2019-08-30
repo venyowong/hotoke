@@ -17,8 +17,6 @@ Build your own search engine.
     ```
 5. Browse http://localhost or http://{your_ip}
 
-**Note：If you want to publish, you can publish and then install the module.**
-
 ## Use the existing online demo
 
 ### HTTP API
@@ -76,8 +74,6 @@ In the above returned results, `searched` indicates the number of engines that h
     Application started. Press Ctrl+C to shut down.
     ```
 5. 打开浏览器，访问 http://localhost 或 http://{your_ip}
-
-**注：如果要发布的话，可以先 publish 再安装模块**
 
 ## 接入线上 Demo 接口
 
