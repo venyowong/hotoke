@@ -33,6 +33,7 @@ Build your own search engine.
 ### HTTP API
 
 `GET http://venyo.cn/search?keyword={keyword}&requestId=`
+
 Calling this interface for the first time will return some search results first, as well as some related parameters of the search status. The reason for this is that the response times of multiple search engines are inconsistent. In order to speed up the response of the interface, the search results of the first search engine will be returned first. The result data structure is as follows:
 ```
 {
@@ -61,6 +62,7 @@ Calling this interface for the first time will return some search results first,
 }
 ```
 In the above returned results, `searched` indicates the number of engines that have completed the search; `finished` indicates whether the search task has been completed; `requestId` is the id of the search request, and this field is mainly used for subsequent requests, that is, when `finished` is false, it indicates that the search task is not completed, and there may be other search results that can be called. You can continue to call the link below until finished is true.
+
 `GET http://venyo.cn/search?keyword=&requestId={requestId}`
 
 # hotoke
@@ -104,6 +106,7 @@ In the above returned results, `searched` indicates the number of engines that h
 ### HTTP API
 
 `GET http://venyo.cn/search?keyword={keyword}&requestId=`
+
 首次调用该接口，将会先返回部分搜索结果，以及一些搜索状态的相关参数。这么做的原因是，多个搜索引擎的响应时间不一致，为了加快接口的响应速度，会先返回第一个搜索引擎的搜索结果。返回结果数据结构如下：
 ```
 {
