@@ -1,4 +1,69 @@
 # hotoke
+Build your own search engine.
+
+## [Online Demo](http://venyo.cn/)
+
+## Quick Start
+
+1. Download or clone project：`git clone https://github.com/venyowong/hotoke.git`
+2. [Install .net core](https://dotnet.microsoft.com/download)
+3. Edit the genericengines attribute in mainsite/App.config to retain the search engine you want to use.
+4. Since the search engine is currently made into a module, adding the engine only needs to install another module without having to re-release it, so it will depend on a module framework [ExtCore] (https://github.com/ExtCore/ExtCore). My other project [ExtCore.Repo] (https://github.com/venyowong/ExtCore.Repo) is an ExtCore plugin library. [Online Demo](https://venyo.cn/extcorepo/index.html)
+
+	4.1 Install the module installation tool
+	
+	`dotnet tool install --global ExtCore.Repo.Tool`
+
+	4.2 Install generic search module
+
+	`extcorepo -i hotoke.generic -h https://venyo.cn/extcorepo`
+5. Run `dotnet run` in the mainsite directory
+    ```
+    Hosting environment: 
+    Content root path: 
+    Now listening on: http://0.0.0.0:80
+    Application started. Press Ctrl+C to shut down.
+    ```
+6. Browse http://localhost or http://{your_ip}
+
+**Note：If you want to publish, you can publish and then install the module.**
+
+## Use the existing online demo
+
+### HTTP API
+
+`GET http://venyo.cn/search?keyword={keyword}&requestId=`
+Calling this interface for the first time will return some search results first, as well as some related parameters of the search status. The reason for this is that the response times of multiple search engines are inconsistent. In order to speed up the response of the interface, the search results of the first search engine will be returned first. The result data structure is as follows:
+```
+{
+	"requestId": "92f8d2eb-811d-4c22-abb8-ae06476a0372",
+	"searched": 4,
+	"finished": true,
+	"results": [{
+		"title": "Mary Venyo | LinkedIn",
+		"url": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
+		"uri": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
+		"desc": null,
+		"score": 0.772727251,
+		"base": 11.0,
+		"source": "baidu",
+		"sources": ["baidu"]
+	}, {
+		"title": "Venyo - 个人中心- 云+社区- 腾讯云",
+		"url": "https://cloud.tencent.com/developer/user/1352059",
+		"uri": "https://cloud.tencent.com/developer/user/1352059",
+		"desc": "Venyo 暂未填写个人简介 Java|C#|流计算服务|ASP.NET|数据库 在 Venyo 的专栏发表了文章 2018-07-272018-07-27 21:36:10 无需数据迁移的水平分库方案 在 Venyo 的专栏发...",
+		"score": 0.7916667,
+		"base": 11.0,
+		"source": "360",
+		"sources": ["360"]
+	}]
+}
+```
+In the above returned results, `searched` indicates the number of engines that have completed the search; `finished` indicates whether the search task has been completed; `requestId` is the id of the search request, and this field is mainly used for subsequent requests, that is, when `finished` is false, it indicates that the search task is not completed, and there may be other search results that can be called. You can continue to call the link below until finished is true.
+`GET http://venyo.cn/search?keyword=&requestId={requestId}`
+
+# hotoke
 构建自己的搜索引擎
 
 本项目暂时以百度、必应、360的搜索结果为主
