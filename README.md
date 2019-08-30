@@ -7,7 +7,7 @@ Build your own search engine.
 
 1. Download or clone project：`git clone https://github.com/venyowong/hotoke.git`
 2. [Install .net core](https://dotnet.microsoft.com/download)
-3. Edit the genericengines attribute in mainsite/App.config to retain the search engine you want to use.
+3. Edit the engines attribute in src/App.config to retain the search engine you want to use.
 4. Since the search engine is currently made into a module, adding the engine only needs to install another module without having to re-release it, so it will depend on a module framework [ExtCore] (https://github.com/ExtCore/ExtCore). My other project [ExtCore.Repo] (https://github.com/venyowong/ExtCore.Repo) is an ExtCore plugin library. [Online Demo](https://venyo.cn/extcorepo/index.html)
 
 	4.1 Install the module installation tool
@@ -17,7 +17,7 @@ Build your own search engine.
 	4.2 Install generic search module
 
 	`extcorepo -i hotoke.generic -h https://venyo.cn/extcorepo`
-5. Run `dotnet run` in the mainsite directory
+5. Run `dotnet run` in the src directory
     ```
     Hosting environment: 
     Content root path: 
@@ -74,11 +74,9 @@ In the above returned results, `searched` indicates the number of engines that h
 
 ## 快速启动
 
-本项目的主体应用为 mainsite 目录下的 asp.net core 项目，启动后即可使用百度、必应、360的综合搜索。
-
 1. 下载或克隆本项目：`git clone https://github.com/venyowong/hotoke.git`
-2. mainsite 项目依赖 .net core 运行环境，所以需要先[安装 .net core](https://dotnet.microsoft.com/download)
-3. 编辑 mainsite/App.config 配置文件中的 genericengines 属性，保留自己想使用的搜索引擎。
+2. 项目依赖 .net core 运行环境，所以需要先[安装 .net core](https://dotnet.microsoft.com/download)
+3. 编辑 src/App.config 配置文件中的 engines 属性，保留自己想使用的搜索引擎。
 4. 由于当前将搜索引擎做成了模块，以后添加引擎只需要安装另外的模块即可，而不必重新发布，所以会依赖一个[模块框架 ExtCore](https://github.com/ExtCore/ExtCore)。本人另外一个[项目 ExtCore.Repo](https://github.com/venyowong/ExtCore.Repo)就是一个 ExtCore 的插件库，[实例地址](https://venyo.cn/extcorepo/index.html)。
 
 	4.1 首先安装模块安装工具
@@ -88,7 +86,7 @@ In the above returned results, `searched` indicates the number of engines that h
 	4.2 其次安装通用搜索模块
 
 	`extcorepo -i hotoke.generic -h https://venyo.cn/extcorepo`
-5. 在 mainsite 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet MainSite.dll`(这一步可能需要权限),你将会看到类似以下的输出：
+5. 在 src 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet Hotoke.dll`(这一步可能需要权限),你将会看到类似以下的输出：
     ```
     Hosting environment: 
     Content root path: 
