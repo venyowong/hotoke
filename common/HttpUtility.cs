@@ -89,6 +89,8 @@ namespace Hotoke.Common
                 Method = HttpMethod.Get,
             };
             request.Headers.Add("User-Agent", UserAgents[Random.Next(UserAgents.Length)]);
+            request.Headers.Add("Accept", "*/*");
+            request.Headers.Add("Host", uri.Host);
             if(Cookies.ContainsKey(uri.Host))
             {
                 request.Headers.Add("Cookie", Cookies[uri.Host]);
