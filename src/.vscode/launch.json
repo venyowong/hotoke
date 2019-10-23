@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/Hotoke.dll",
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp3.0/Hotoke.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

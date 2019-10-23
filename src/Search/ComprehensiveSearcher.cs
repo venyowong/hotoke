@@ -1,42 +1,44 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-using Niolog;
 using Hotoke.Models;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Niolog;
 
 namespace Hotoke.Search
 {
-    public static class SearchManager
+    public class ComprehensiveSearcher
     {
-        private static volatile MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
-        private static readonly IEnumerable<ISearchEngine> _engines = null;
-        private static readonly Dictionary<string, float> _factorDic = new Dictionary<string, float>();
-        private static string[] _badUrls;
+        private IConfiguration config;
+        private volatile MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
+        private readonly IEnumerable<ISearchEngine> engines = null;
+        private readonly Dictionary<string, float> factorDic = new Dictionary<string, float>();
+        private string[] badUrls;
 
-        static SearchManager()
+        public ComprehensiveSearcher(IConfiguration config)
         {
+            this.config = config;
             var logger = NiologManager.CreateLogger();
 
             try
             {
-                _engines = ConfigurationManager.AppSettings["engines"].Split(',').Select<string, ISearchEngine>(engine => 
+                engines = this.config["engines"].Split(',').Select<string, ISearchEngine>(engine => 
                 {
                     var strs = engine.Split(':');
                     engine = strs[0];
                     if(strs.Length > 1 && float.TryParse(strs[1], out float factor))
                     {
-                        _factorDic.TryAdd(engine, factor);
+                        factorDic.TryAdd(engine, factor);
                         logger.Info()
-                            .Message($"Adding search engine {engine}, search factor: {_factorDic[engine]}")
+                            .Message($"Adding search engine {engine}, search factor: {factorDic[engine]}")
                             .Write();
                     }
                     else
                     {
-                        _factorDic.TryAdd(engine, 1f);
+                        factorDic.TryAdd(engine, 1f);
                         logger.Info()
                             .Message($"Adding search engine {engine}, search factor: 1.0")
                             .Write();
@@ -51,11 +53,11 @@ namespace Hotoke.Search
                             logger.Info()
                                 .Message("Parsed as GenericSearch")
                                 .Write();
-                            return new GenericSearch(engine);
+                            return new GenericSearch(this.config, engine);
                     }
                 });
 
-                _badUrls = ConfigurationManager.AppSettings["badurls"].Split(';');
+                badUrls = this.config["badurls"].Split(';');
             }
             catch(Exception e)
             {
@@ -63,11 +65,11 @@ namespace Hotoke.Search
                     .Message("Failed to init SearchManager")
                     .Exception(e)
                     .Write();
-                _badUrls = new string[0];
+                badUrls = new string[0];
             }
         }
 
-        public static SearchResultModel GetSearchResult(string keyword)
+        public SearchResultModel GetSearchResult(string keyword)
         {
             if(string.IsNullOrWhiteSpace(keyword))
             {
@@ -79,7 +81,7 @@ namespace Hotoke.Search
             {
                 RequestId = requestId
             };
-            _cache.Set(requestId, result, new TimeSpan(0, 1, 0));
+            cache.Set(requestId, result, new TimeSpan(0, 1, 0));
             var english = !keyword.HasOtherLetter();
             result.Results = new List<SearchResult>();
 
@@ -87,7 +89,7 @@ namespace Hotoke.Search
             Task.Run(() =>
             {
                 NiologManager.Logger = logger;
-                Parallel.ForEach(_engines, engine =>
+                Parallel.ForEach(engines, engine =>
                 {
                     NiologManager.Logger = logger;
                     SearchPerEngine(engine, keyword, english, result);
@@ -116,14 +118,14 @@ namespace Hotoke.Search
             return newResult;
         }
 
-        public static SearchResultModel GetSearchResult(string requestId, string keyword)
+        public SearchResultModel GetSearchResult(string requestId, string keyword)
         {
             if(string.IsNullOrWhiteSpace(requestId))
             {
                 return GetSearchResult(keyword);
             }
 
-            _cache.TryGetValue(requestId, out SearchResultModel result);
+            cache.TryGetValue(requestId, out SearchResultModel result);
             if(result == null && !string.IsNullOrWhiteSpace(keyword))
             {
                 return GetSearchResult(keyword);
@@ -132,12 +134,12 @@ namespace Hotoke.Search
             return result;
         }
 
-        public static SearchResultModel GetSearchResultById(string requestId)
+        public SearchResultModel GetSearchResultById(string requestId)
         {
             return GetSearchResult(requestId, string.Empty);
         }
 
-        private static void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
+        private void SearchPerEngine(ISearchEngine engine, string keyword, bool english, 
             SearchResultModel result)
         {
             var logger = NiologManager.CreateLogger();
@@ -160,7 +162,7 @@ namespace Hotoke.Search
                 {
                     lock(result)
                     {
-                        MergeResult(keyword, searchResults, result.Results, _factorDic[engine.Name]);
+                        MergeResult(keyword, searchResults, result.Results, factorDic[engine.Name]);
                     }
                 }
                 catch(Exception e)
@@ -185,7 +187,7 @@ namespace Hotoke.Search
             }
         }
 
-        private static void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, 
+        private void MergeResult(string keyword, IEnumerable<SearchResult> searchResults, 
             List<SearchResult> results, float factor)
         {
             if(results.Count == 0)
@@ -210,11 +212,11 @@ namespace Hotoke.Search
                     {
                         if(r.Title == result.Title || r.Title.SimilarWith(result.Title))
                         {
-                            if(r.Url.ContainsAny(_badUrls))
+                            if(r.Url.ContainsAny(badUrls))
                             {
                                 r.Url = result.Url;
                             }
-                            else if(!_badUrls.Contains(result.Url) && !r.Uri.SameAs(result.Uri))
+                            else if(!badUrls.Contains(result.Url) && !r.Uri.SameAs(result.Uri))
                             {
                                 continue;
                             }

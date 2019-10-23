@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Configuration;
 using Niolog;
 
 namespace Hotoke.Search
@@ -13,16 +12,18 @@ namespace Hotoke.Search
         private string nodesSelection;
         private string linkSelection;
         private string descSelection;
+        private IConfiguration config;
 
         public string Name {get; private set;}
 
-        public GenericSearch(string name)
+        public GenericSearch(IConfiguration config, string name)
         {
+            this.config = config;
             this.Name = name;
-            this.baseUrl = ConfigurationManager.AppSettings[$"{this.Name}.url"];
-            this.nodesSelection = ConfigurationManager.AppSettings[$"{this.Name}.nodes"];
-            this.linkSelection = ConfigurationManager.AppSettings[$"{this.Name}.link"];
-            this.descSelection = ConfigurationManager.AppSettings[$"{this.Name}.desc"];
+            this.baseUrl = this.config[$"{this.Name}:url"];
+            this.nodesSelection = this.config[$"{this.Name}:nodes"];
+            this.linkSelection = this.config[$"{this.Name}:link"];
+            this.descSelection = this.config[$"{this.Name}:desc"];
         }
 
         public IEnumerable<SearchResult> Search(string keyword, bool english = false)
