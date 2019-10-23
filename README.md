@@ -5,17 +5,15 @@ Build your own search engine.
 
 ## Quick Start
 
-1. Download or clone project：`git clone https://github.com/venyowong/hotoke.git`
-2. [Install .net core](https://dotnet.microsoft.com/download)
-3. Edit the engines attribute in src/App.config to retain the search engine you want to use.
-4. Run `dotnet run` in the src directory
+1. Download and unzip [Release](https://github.com/venyowong/hotoke/releases)
+2. Run `./Hotoke` or double click `Hotoke.exe` in the root directory, and you will see this output
     ```
     Hosting environment: 
     Content root path: 
-    Now listening on: http://0.0.0.0:80
+    Now listening on: http://127.0.0.1:11565
     Application started. Press Ctrl+C to shut down.
     ```
-5. Browse http://localhost or http://{your_ip}
+3. Browse http://127.0.0.1:11565
 
 ## Use the existing online demo
 
@@ -63,17 +61,15 @@ In the above returned results, `searched` indicates the number of engines that h
 
 ## 快速启动
 
-1. 下载或克隆本项目：`git clone https://github.com/venyowong/hotoke.git`
-2. 项目依赖 .net core 运行环境，所以需要先[安装 .net core](https://dotnet.microsoft.com/download)
-3. 编辑 src/App.config 配置文件中的 engines 属性，保留自己想使用的搜索引擎。
-4. 在 src 目录下，启动终端，执行 `dotnet run` 命令；如果下载了已打包好的文件可以执行 `dotnet Hotoke.dll`(这一步可能需要权限),你将会看到类似以下的输出：
+1. 下载并解压 [Release](https://github.com/venyowong/hotoke/releases)
+2. 进入解压目录，命令行运行 `./Hotoke` 或双击 `Hotoke.exe`, 你将会看到类似以下的输出：
     ```
     Hosting environment: 
     Content root path: 
-    Now listening on: http://0.0.0.0:80
+    Now listening on: http://127.0.0.1:11565
     Application started. Press Ctrl+C to shut down.
     ```
-5. 打开浏览器，访问 http://localhost 或 http://{your_ip}
+3. 打开浏览器，访问 http://127.0.0.1:11565
 
 ## 接入线上 Demo 接口
 
