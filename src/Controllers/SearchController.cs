@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Hotoke.Models;
 using Hotoke.Search;
 using Microsoft.AspNetCore.Mvc;
@@ -19,8 +20,8 @@ namespace Hotoke.Controllers
             return this.searcher.GetSearchResult(requestId, keyword);
         }
 
-        [HttpGet]
-        public int Count(string requestId)
+        [HttpGet, ModelValidation]
+        public int Count([Required]string requestId)
         {
             return this.searcher.GetSearchResultById(requestId)?.Searched ?? 0;
         }
