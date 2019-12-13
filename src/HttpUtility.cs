@@ -4,16 +4,14 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Hotoke
 {
     public static class HttpUtility
     {
         private static HttpClient _httpClient = new HttpClient();
-        private static JsonSerializerSettings JsonSettings;
         private static Random Random = new Random();
         private static Regex CharSetRegex = new Regex("charset=\"([^\"]+)", RegexOptions.IgnoreCase);
         private static string[] UserAgents = 
@@ -36,10 +34,6 @@ namespace Hotoke
         static HttpUtility()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            JsonSettings = new JsonSerializerSettings();
-            JsonSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            JsonSettings.Formatting = Formatting.Indented;
 
             _httpClient.Timeout = new TimeSpan(0, 0, 5);
         }
@@ -109,7 +103,7 @@ namespace Hotoke
 
             try
             {
-                return JsonConvert.DeserializeObject<T>(json);
+                return JsonSerializer.Deserialize<T>(json);
             }
             catch(Exception)
             {
@@ -170,7 +164,7 @@ namespace Hotoke
             }
 
             return _httpClient.PostAsync(new Uri(url), 
-                data != null ? new StringContent(JsonConvert.SerializeObject(data), 
+                data != null ? new StringContent(JsonSerializer.Serialize(data), 
                 Encoding.UTF8, "application/json") : null)?.Result?.Content
                 ?.ReadAsStringAsync()?.Result;
         }
