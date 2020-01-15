@@ -57,6 +57,8 @@ namespace Hotoke.Search
             {
                 logger.Warn()
                     .Message($"cannot select nodes from {this.Name} response")
+                    .SetTag("Problem", "bad query")
+                    .SetTag("Url", url)
                     .Write();
                 return null;
             }
