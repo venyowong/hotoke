@@ -168,5 +168,63 @@ namespace Hotoke
                 Encoding.UTF8, "application/json") : null)?.Result?.Content
                 ?.ReadAsStringAsync()?.Result;
         }
+
+        private static Regex HtmlUrlRegex = new Regex(@"^([a-zA-Z]+:)?(//)?([^/]+)?(/)?[^\s]*");
+        public static bool IsUrl(Uri pageUri, ref string str)
+        {
+            if(string.IsNullOrWhiteSpace(str))
+            {
+                return false;
+            }
+            var match = HtmlUrlRegex.Match(str);
+            if(match == null || !match.Success)
+            {
+                return false;
+            }
+
+            string prefix = null;
+            if(string.IsNullOrEmpty(match.Groups[1].Value))
+            {
+                prefix = "http:";
+            }
+            else
+            {
+                return true;
+            }
+
+            if(string.IsNullOrEmpty(match.Groups[2].Value))
+            {
+                prefix += "//";
+            }
+            else
+            {
+                str = prefix + str;
+                return true;
+            }
+
+            if(string.IsNullOrEmpty(match.Groups[3].Value))
+            {
+                prefix = pageUri.AbsoluteUri.Substring(0, pageUri.AbsoluteUri.Length - pageUri.AbsolutePath.Length);
+            }
+            else
+            {
+                str = prefix + str;
+                return true;
+            }
+
+            if(!string.IsNullOrEmpty(match.Groups[4].Value))
+            {
+                var index = pageUri.AbsoluteUri.LastIndexOf('/');
+                prefix = pageUri.AbsoluteUri.Substring(0, index);
+            }
+            else
+            {
+                str = prefix + '/' + str;
+                return true;
+            }
+
+            str = prefix + str;
+            return true;
+        }
     }
 }

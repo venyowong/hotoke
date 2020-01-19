@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +43,8 @@ namespace Hotoke.Search
             logger.Info()
                 .Message($"{this.Name} url: {url}")
                 .Write();
-            var html = HttpUtility.Get(url);
+            var uri = new Uri(url);
+            var html = HttpUtility.Get(uri);
             if(string.IsNullOrWhiteSpace(html))
             {
                 logger.Warn()
@@ -76,8 +79,16 @@ namespace Hotoke.Search
                     return null;
                 }
 
-                result.Url = link.Attributes["href"]?.Value.Trim();
-                if(string.IsNullOrWhiteSpace(result.Url))
+                var href = link.Attributes["href"]?.Value.Trim();
+                if(string.IsNullOrWhiteSpace(href))
+                {
+                    return null;
+                }
+                if (HttpUtility.IsUrl(uri, ref href))
+                {
+                    result.Url = href;
+                }
+                else
                 {
                     return null;
                 }
