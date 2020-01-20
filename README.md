@@ -95,7 +95,7 @@ public class Startup
 ```
 3. Add the above engine name into the `engines` config in appsettings.json. **Note: comma separated**
 
-## 元搜索引擎
+## Meta search engine
 
 This project provides three kinds of meta search engines for selection, and the main difference is how to search.
 
