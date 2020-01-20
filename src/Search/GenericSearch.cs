@@ -18,6 +18,8 @@ namespace Hotoke.Search
 
         public string Name {get; private set;}
 
+        public float Weight{get;set;}
+
         public GenericSearch(IConfiguration config, string name)
         {
             this.config = config;

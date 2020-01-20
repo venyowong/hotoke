@@ -1,6 +1,8 @@
 # hotoke
 Build your own search engine.
 
+## [中文版](README_CN.md)
+
 ## [Online Demo](http://venyo.cn/)
 
 ## Quick Start
@@ -52,60 +54,67 @@ In the above returned results, `searched` indicates the number of engines that h
 
 `GET http://venyo.cn/search?keyword=&requestId={requestId}`
 
-# hotoke
-构建自己的搜索引擎
+## Add search engine
 
-本项目暂时以百度、必应、360的搜索结果为主
+### GenericSearch
 
-## [线上 Demo](http://venyo.cn/)
+Genericsearch is a general search template implemented by default for the project. It can grab search results through the configured XPath.
 
-## 快速启动
-
-1. 下载并解压 [Release](https://github.com/venyowong/hotoke/releases)
-2. 进入解压目录，命令行运行 `./Hotoke` 或双击 `Hotoke.exe`, 你将会看到类似以下的输出：
-    ```
-    Hosting environment: 
-    Content root path: 
-    Now listening on: http://127.0.0.1:11565
-    Application started. Press Ctrl+C to shut down.
-    ```
-3. 打开浏览器，访问 http://127.0.0.1:11565
-
-## 接入线上 Demo 接口
-
-如果你不想自己搭建环境，但是又认为本项目的接口对你有用的话，可以直接接入线上 Demo 的接口，以下介绍接入方式：
-
-### HTTP API
-
-`GET http://venyo.cn/search?keyword={keyword}&requestId=`
-
-首次调用该接口，将会先返回部分搜索结果，以及一些搜索状态的相关参数。这么做的原因是，多个搜索引擎的响应时间不一致，为了加快接口的响应速度，会先返回第一个搜索引擎的搜索结果。返回结果数据结构如下：
+1. Add a config node in appsettings.json, like:
 ```
-{
-	"requestId": "92f8d2eb-811d-4c22-abb8-ae06476a0372",
-	"searched": 4,
-	"finished": true,
-	"results": [{
-		"title": "Mary Venyo | LinkedIn",
-		"url": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
-		"uri": "http://www.baidu.com/link?url=p07qw3oxp79g9S7KYyTyjGIEDPQwLjEXGAe5nJuQbguM0sj5b-m0X6am_DXe51rKSqB98j3pfE3QzrV4bp7_PK",
-		"desc": null,
-		"score": 0.772727251,
-		"base": 11.0,
-		"source": "baidu",
-		"sources": ["baidu"]
-	}, {
-		"title": "Venyo - 个人中心- 云+社区- 腾讯云",
-		"url": "https://cloud.tencent.com/developer/user/1352059",
-		"uri": "https://cloud.tencent.com/developer/user/1352059",
-		"desc": "Venyo 暂未填写个人简介 Java|C#|流计算服务|ASP.NET|数据库 在 Venyo 的专栏发表了文章 2018-07-272018-07-27 21:36:10 无需数据迁移的水平分库方案 在 Venyo 的专栏发...",
-		"score": 0.7916667,
-		"base": 11.0,
-		"source": "360",
-		"sources": ["360"]
-	}]
+"bing": {
+    "url": "https://www2.bing.com/search?q={keyword}&ensearch={ensearch}",
+    "nodes": "//ol[@id='b_results']/li[@class='b_algo']",
+    "link": ".//h2/a",
+    "desc": ".//div[@class='b_caption']/p"
 }
 ```
-在以上返回结果中，searched 表示已完成搜索的引擎数量，finished 表示是否已完成本次搜索任务，requestId 为本次搜索请求的 id，该字段主要用来进行后续请求，即当 finished 为 false 时，表示搜索任务未完成，可能还有其他搜索结果，可调用
-`GET http://venyo.cn/search?keyword={keyword}&requestId={首次调用接口返回的 requestId}`
-继续获取搜索结果，直至 finished 为 true。
+- `bing` is engine name
+- `url` is a search link, and the parameters enclosed by curly brackets in the link are parameters. `keyword` indicates the keywords of user query. When the keywords are all in English, `lang` is en and `ensearch` is 1, otherwise `lang` is cn and `ensearch` is 0
+- `nodes` is the XPath to extract each search result
+- `link` is the XPath of hyperlink
+- `desc` is the XPath of the result description
+
+2. Add the above engine name into the `engines` config in appsettings.json. **Note: comma separated**
+
+### Custom search engine
+
+Another method is user-defined search class, which needs to implement ISearchEngine interface
+
+1. Create a custom class to implement isearchengine interface, assuming the name is SearchEngine
+2. Register SearchEngine
+```
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton(new MetaSearcherConfig()
+            .MapSearchEngine("name", new SearchEngine()));
+    }
+}
+```
+3. Add the above engine name into the `engines` config in appsettings.json. **Note: comma separated**
+
+## 元搜索引擎
+
+This project provides three kinds of meta search engines for selection, and the main difference is how to search.
+
+### ParallelSearcher
+
+ParallelSearcher is the default engine, which initiates query requests to all search engines at the same time when searching and returns when the first search result is obtained. To wait for all search engines to finish before returning results, you can call this interface `GET http://venyo.cn/search/all?keyword={keyword}`
+
+### WeightFirstSearcher
+
+WeightFirstSearcher will select the engine with the highest weight (the lowest value) in the search engine list, make a query request for it first, then initiate other query requests, and immediately return the existing search results. This engine does not support synchronous return of all results.
+
+### CustomSearcher
+
+CustomSearcher is positioned as a customizable meta search engine. At present, it only provides a advanced search engine list configuration, that is, which search engines are configured to have priority in parallel search. This engine does not support synchronous return of all results. The configuration is as follows：
+```
+"CustomSearcher": {
+    "AdvancedList": [
+        "bing",
+        "baidu"
+    ]
+}
+```

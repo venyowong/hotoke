@@ -31,12 +31,25 @@ namespace Hotoke
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddSingleton<ComprehensiveSearcher>();
+            services.AddSingleton<MetaSearcherConfig>();
+            switch (this.Configuration["searcher"]?.ToLower())
+            {
+                case "weightfirst":
+                    services.AddSingleton<BaseMetaSearcher, WeightFirstSearcher>();
+                    break;
+                case "custom":
+                    services.AddSingleton<BaseMetaSearcher, CustomSearcher>();
+                    break;
+                default:
+                    services.AddSingleton<BaseMetaSearcher, ParallelSearcher>();
+                    break;
+            }
 
             services.AddMvc(option => option.EnableEndpointRouting = false);
 
             services.AddOptions()
                 .Configure<AppSettings>(this.Configuration)
+                .Configure<CustomSearcherConfig>(this.Configuration.GetSection("CustomSearcher"))
                 .AddCors(o => o.AddPolicy("Default", builder =>
                 {
                     builder.AllowAnyOrigin()
