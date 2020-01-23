@@ -7,8 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Niolog;
-using Niolog.Interfaces;
+using Niolog.AspNetCore;
 
 namespace Hotoke
 {
@@ -67,16 +66,11 @@ namespace Hotoke
                 app.UseDeveloperExceptionPage();
             }
 
-            if(appSettings?.Value?.Niolog != null)
+            app.UseNiolog(options =>
             {
-                NiologManager.DefaultWriters = new ILogWriter[]
-                {
-                    new ConsoleLogWriter(),
-                    new FileLogWriter(appSettings.Value.Niolog.Path, 10),
-                    new HttpLogWriter(appSettings.Value.Niolog.Url, 10, 1)
-                };
-            }
-            loggerFactory.AddProvider(new LoggerProvider());
+                options.FolderPath = appSettings?.Value?.Niolog?.Path;
+                options.HttpUrl = appSettings?.Value?.Niolog?.Url;
+            });
 
             var defaultFile = new DefaultFilesOptions();  
             defaultFile.DefaultFileNames.Clear();  
