@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Hotoke.Models;
+using Hotoke.Core.Engines;
+using Hotoke.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Niolog;
 
-namespace Hotoke.Search
+namespace Hotoke.Core.Searchers
 {
     public abstract class BaseMetaSearcher
     {

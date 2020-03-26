@@ -4,35 +4,13 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Hotoke.Models;
-using Hotoke.Search;
+using Hotoke.Core.Models;
 using HtmlAgilityPack;
 
-namespace Hotoke
+namespace Hotoke.Core
 {
-    static class Utility
+    public static class Utility
     {
-        public static SearchResultModel Copy(this SearchResultModel model)
-        {
-            if(model == null)
-            {
-                return null;
-            }
-
-            var newModel = new SearchResultModel
-            {
-                RequestId = model.RequestId,
-                Searched = model.Searched,
-                Finished = model.Finished
-            };
-            if(model.Results != null)
-            {
-                newModel.Results = new List<SearchResult>();
-                newModel.Results.AddRange(model.Results);
-            }
-            return newModel;
-        }
-
         public static bool ContainsAny(this string str, IEnumerable<string> strs)
         {
             if(string.IsNullOrWhiteSpace(str) || strs == null || strs.Count() <= 0)
@@ -203,6 +181,27 @@ namespace Hotoke
             }
 
             return null;
+        }
+
+        public static SearchResultModel Copy(this SearchResultModel model)
+        {
+            if(model == null)
+            {
+                return null;
+            }
+
+            var newModel = new SearchResultModel
+            {
+                RequestId = model.RequestId,
+                Searched = model.Searched,
+                Finished = model.Finished
+            };
+            if(model.Results != null)
+            {
+                newModel.Results = new List<SearchResult>();
+                newModel.Results.AddRange(model.Results);
+            }
+            return newModel;
         }
     }
 }

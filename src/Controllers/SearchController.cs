@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using Hotoke.Models;
-using Hotoke.Search;
+using Hotoke.Core.Models;
+using Hotoke.Core.Searchers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hotoke.Controllers

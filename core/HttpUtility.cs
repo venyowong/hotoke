@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Hotoke
+namespace Hotoke.Core
 {
     public static class HttpUtility
     {

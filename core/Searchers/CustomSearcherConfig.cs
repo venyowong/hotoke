@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Hotoke.Search
+namespace Hotoke.Core.Searchers
 {
     public class CustomSearcherConfig
     {

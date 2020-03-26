@@ -1,35 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Hotoke.Models;
+using System.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Niolog;
+using Hotoke.Core.Engines;
+using Hotoke.Core.Models;
 
-namespace Hotoke.Search
+namespace Hotoke.Core.Searchers
 {
     /// <summary>
-    /// CustomSearcher does not support sync search.
+    /// WeightFirstSearcher does not support sync search.
     /// </summary>
-    public class CustomSearcher : BaseMetaSearcher
+    public class WeightFirstSearcher : BaseMetaSearcher
     {
         private volatile MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
-        
-        private readonly IEnumerable<ISearchEngine> firstEngines = null;
 
-        private readonly IEnumerable<ISearchEngine> secondaryEngines = null;
+        private readonly IEnumerable<ISearchEngine> engines = null;
 
-        public CustomSearcher(IConfiguration config, MetaSearcherConfig searcherConfig, 
-            IOptions<CustomSearcherConfig> customSearcherConfig) : base(config, searcherConfig)
+        private readonly ISearchEngine firstEngine = null;
+
+        public WeightFirstSearcher(IConfiguration config, MetaSearcherConfig searcherConfig) : base(config, searcherConfig)
         {
-            this.secondaryEngines = base.GetEngineList();
-            this.firstEngines = this.secondaryEngines.Where(e => IsAdvancedEngine(e.Name));
-            this.secondaryEngines = this.secondaryEngines.Where(e => !IsAdvancedEngine(e.Name));
-
-            bool IsAdvancedEngine(string name) => customSearcherConfig?.Value?.AdvancedList?.Contains(name) ?? false;
+            this.engines = base.GetEngineList()
+                .OrderBy(e => e.Weight);
+            this.firstEngine = this.engines.FirstOrDefault();
+            this.engines = this.engines.Where(e => e.Name != this.firstEngine?.Name);
         }
 
         public override SearchResultModel GetSearchResult(string requestId, string keyword, bool async = true)
@@ -65,15 +63,11 @@ namespace Hotoke.Search
             result.Results = new List<SearchResult>();
 
             var logger = NiologManager.CreateLogger();
-            Parallel.ForEach(this.firstEngines, engine =>
-            {
-                NiologManager.Logger = logger;
-                base.SearchOnEngine(engine, keyword, english, result);
-            });
+            base.SearchOnEngine(this.firstEngine, keyword, english, result);
             Task.Run(() =>
             {
                 NiologManager.Logger = logger;
-                Parallel.ForEach(this.secondaryEngines, engine =>
+                Parallel.ForEach(this.engines, engine =>
                 {
                     NiologManager.Logger = logger;
                     base.SearchOnEngine(engine, keyword, english, result);

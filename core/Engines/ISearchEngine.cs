@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Hotoke.Core.Models;
 
-namespace Hotoke.Search
+namespace Hotoke.Core.Engines
 {
     public interface ISearchEngine
     {

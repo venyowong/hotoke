@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using Hotoke.Core.Models;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Configuration;
 using Niolog;
 
-namespace Hotoke.Search
+namespace Hotoke.Core.Engines
 {
     public class GenericSearch : ISearchEngine
     {

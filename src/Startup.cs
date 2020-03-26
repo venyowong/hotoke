@@ -1,5 +1,4 @@
-﻿using Hotoke.Search;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -8,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Niolog.AspNetCore;
+using Hotoke.Core.AspNetCore;
 
 namespace Hotoke
 {
@@ -30,25 +30,12 @@ namespace Hotoke
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddSingleton<MetaSearcherConfig>();
-            switch (this.Configuration["searcher"]?.ToLower())
-            {
-                case "weightfirst":
-                    services.AddSingleton<BaseMetaSearcher, WeightFirstSearcher>();
-                    break;
-                case "custom":
-                    services.AddSingleton<BaseMetaSearcher, CustomSearcher>();
-                    break;
-                default:
-                    services.AddSingleton<BaseMetaSearcher, ParallelSearcher>();
-                    break;
-            }
+            services.AddHotoke(this.Configuration["searcher"], this.Configuration.GetSection("CustomSearcher"));
 
             services.AddMvc(option => option.EnableEndpointRouting = false);
 
             services.AddOptions()
                 .Configure<AppSettings>(this.Configuration)
-                .Configure<CustomSearcherConfig>(this.Configuration.GetSection("CustomSearcher"))
                 .AddCors(o => o.AddPolicy("Default", builder =>
                 {
                     builder.AllowAnyOrigin()

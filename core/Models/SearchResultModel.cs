@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Hotoke.Search;
 
-namespace Hotoke.Models
+namespace Hotoke.Core.Models
 {
     public class SearchResultModel
     {

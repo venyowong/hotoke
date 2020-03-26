@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Hotoke.Core.Engines;
 
-namespace Hotoke.Search
+namespace Hotoke.Core.Searchers
 {
     public class MetaSearcherConfig
     {
