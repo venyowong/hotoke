@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Niolog;
 using Hotoke.Core.Engines;
 using Hotoke.Core.Models;
+using Serilog;
 
 namespace Hotoke.Core.Searchers
 {
@@ -62,14 +62,11 @@ namespace Hotoke.Core.Searchers
             var english = !keyword.HasOtherLetter();
             result.Results = new List<SearchResult>();
 
-            var logger = NiologManager.CreateLogger();
             base.SearchOnEngine(this.firstEngine, keyword, english, result);
             Task.Run(() =>
             {
-                NiologManager.Logger = logger;
                 Parallel.ForEach(this.engines, engine =>
                 {
-                    NiologManager.Logger = logger;
                     base.SearchOnEngine(engine, keyword, english, result);
                 });
 
@@ -88,10 +85,7 @@ namespace Hotoke.Core.Searchers
             }
             catch(Exception e)
             {
-                logger.Error()
-                    .Message("catched an exception when copying result.")
-                    .Exception(e, true)
-                    .Write();
+                Log.Error(e, "catched an exception when copying result.");
             }
             return newResult;
         }

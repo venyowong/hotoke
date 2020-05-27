@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Hotoke.Core.AspNetCore;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Hotoke.Aliyun
 {
@@ -41,14 +44,24 @@ namespace Hotoke.Aliyun
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            var logSwitch = new LoggingLevelSwitch();
             if (env.IsDevelopment())
             {
+                logSwitch.MinimumLevel = LogEventLevel.Information;
                 app.UseDeveloperExceptionPage();
             }
             else
             {
+                logSwitch.MinimumLevel = LogEventLevel.Warning;
                 app.UseHsts();
             }
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(logSwitch)
+                .WriteTo.Console()
+                .WriteTo.Http(this.Configuration["serilog:http"])
+                .Enrich.FromLogContext()
+                .CreateLogger();
 
             app.UseCors("Default");
             app.UseHttpsRedirection();

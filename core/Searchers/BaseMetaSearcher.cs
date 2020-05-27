@@ -5,7 +5,7 @@ using System.Threading;
 using Hotoke.Core.Engines;
 using Hotoke.Core.Models;
 using Microsoft.Extensions.Configuration;
-using Niolog;
+using Serilog;
 
 namespace Hotoke.Core.Searchers
 {
@@ -67,22 +67,16 @@ namespace Hotoke.Core.Searchers
                 return;
             }
 
-            var logger = NiologManager.CreateLogger();
-
             try
             {
                 var searchResults = engine.Search(keyword, english);
                 if(searchResults == null || searchResults.Count() <= 0)
                 {
-                    logger.Warn()
-                        .Message($"The result is null or empty, when searching {keyword} by {engine.Name}")
-                        .Write();
+                    Log.Warning("The result is null or empty, when searching {Keyword} by {Name}", keyword, engine.Name);
                     return;
                 }
 
-                logger.Info()
-                    .Message($"count of {engine.Name} results: {searchResults.Count()}")
-                    .Write();
+                Log.Information("count of {Name} results: {Count}", engine.Name, searchResults.Count());
                 try
                 {
                     lock(result)
@@ -92,23 +86,15 @@ namespace Hotoke.Core.Searchers
                 }
                 catch(Exception e)
                 {
-                    logger.Error()
-                        .Message("catched an exception when merging result.")
-                        .Exception(e, true)
-                        .Write();
+                    Log.Error(e, "catched an exception when merging result.");
                 }
-                logger.Info()
-                    .Message($"{engine.Name} results merged.")
-                    .Write();
+                Log.Information("{Name} results merged.", engine.Name);
                 var count = result.Searched;
                 result.Searched = Interlocked.Increment(ref count);
             }
             catch(Exception e)
             {
-                logger.Error()
-                    .Message($"An exception occurred while searching for {keyword}")
-                    .Exception(e, true)
-                    .Write();
+                Log.Error(e, "An exception occurred while searching for {Keyword}", keyword);
             }
         }
 

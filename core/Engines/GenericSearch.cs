@@ -4,7 +4,8 @@ using System.Linq;
 using Hotoke.Core.Models;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Configuration;
-using Niolog;
+using Serilog;
+using Serilog.Context;
 
 namespace Hotoke.Core.Engines
 {
@@ -37,21 +38,15 @@ namespace Hotoke.Core.Engines
                 return null;
             }
 
-            var logger = NiologManager.CreateLogger();
-
             var lang = english ? "en" : "cn";
             var ensearch = english ? "1" : "0";
             var url = this.baseUrl.Replace("{keyword}", System.Web.HttpUtility.UrlEncode(keyword)).Replace("{lang}", lang).Replace("{ensearch}", ensearch);
-            logger.Info()
-                .Message($"{this.Name} url: {url}")
-                .Write();
+            Log.Information("{Name} url: {Url}", this.Name, url);
             var uri = new Uri(url);
             var html = HttpUtility.Get(uri);
             if(string.IsNullOrWhiteSpace(html))
             {
-                logger.Warn()
-                    .Message($"{this.Name} response is null or white space")
-                    .Write();
+                Log.Warning("{Name} response is null or white space when searching {Url}", this.Name, url);
                 return null;
             }
 
@@ -60,11 +55,11 @@ namespace Hotoke.Core.Engines
             var nodes = doc.DocumentNode.SelectAllNodes(this.nodesSelection);
             if(nodes == null || nodes.Count <= 0)
             {
-                logger.Warn()
-                    .Message($"cannot select nodes from {this.Name} response")
-                    .SetTag("Problem", "bad query")
-                    .SetTag("Url", url)
-                    .Write();
+                using (LogContext.PushProperty("Problem", "bad query"))
+                using (LogContext.PushProperty("Url", url))
+                {
+                    Log.Warning("cannot select nodes from {Name} response", this.Name);
+                }
                 return null;
             }
 
