@@ -6,8 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Niolog.AspNetCore;
 using Hotoke.Core.AspNetCore;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog;
+using System.IO;
 
 namespace Hotoke
 {
@@ -48,16 +51,40 @@ namespace Hotoke
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, 
             IOptions<AppSettings> appSettings, ILoggerFactory loggerFactory)
         {
+            var logSwitch = new LoggingLevelSwitch();
             if (env.IsDevelopment())
             {
+                logSwitch.MinimumLevel = LogEventLevel.Information;
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseNiolog(options =>
+            else
             {
-                options.FolderPath = appSettings?.Value?.Niolog?.Path;
-                options.HttpUrl = appSettings?.Value?.Niolog?.Url;
-            });
+                logSwitch.MinimumLevel = LogEventLevel.Warning;
+            }
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Console()
+                .WriteTo.Logger(lc =>
+                {
+                    lc.WriteTo
+                        .RollingFile(Path.Combine(this.Configuration["Serilog:BaseFilePath"], "logs/info/{Hour}.txt"))
+                        .Filter.ByIncludingOnly(@e => @e.Level == LogEventLevel.Information);
+                })
+                .WriteTo.Logger(lc =>
+                {
+                    lc.WriteTo
+                        .RollingFile(Path.Combine(this.Configuration["Serilog:BaseFilePath"], "logs/warn/{Hour}.txt"))
+                        .Filter.ByIncludingOnly(@e => @e.Level == LogEventLevel.Warning);
+                })
+                .WriteTo.Logger(lc =>
+                {
+                    lc.WriteTo
+                        .RollingFile(Path.Combine(this.Configuration["Serilog:BaseFilePath"], "logs/error/{Hour}.txt"))
+                        .Filter.ByIncludingOnly(@e => @e.Level == LogEventLevel.Error);
+                })
+                .WriteTo.Http(this.Configuration["Serilog:Http"])
+                .CreateLogger();
 
             var defaultFile = new DefaultFilesOptions();  
             defaultFile.DefaultFileNames.Clear();  

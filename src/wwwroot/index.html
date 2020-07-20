@@ -89,9 +89,9 @@
                 if(!requestId){
                     requestId = "";
                 }
-                let url = `${window.location.origin}/search?keyword=${encodeURIComponent(app.keyword)}&requestId=${encodeURIComponent(requestId)}`;
+                let url = `./search?keyword=${encodeURIComponent(app.keyword)}&requestId=${encodeURIComponent(requestId)}`;
                 if(requestId){
-                    url = `${window.location.origin}/search?requestId=${encodeURIComponent(requestId)}`;
+                    url = `./search?requestId=${encodeURIComponent(requestId)}`;
                 }
                 $.get(url,
                 function(data){
@@ -126,7 +126,7 @@
             });
 
             $(".logo").click(function() {
-                window.location.href = window.location.origin;
+                window.location.href = "./";
             });
 
             $(".keyword").keydown(function(event) {
