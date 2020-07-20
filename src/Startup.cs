@@ -48,8 +48,7 @@ namespace Hotoke
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, 
-            IOptions<AppSettings> appSettings, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             var logSwitch = new LoggingLevelSwitch();
             if (env.IsDevelopment())
