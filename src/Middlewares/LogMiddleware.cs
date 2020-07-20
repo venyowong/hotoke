@@ -1,3 +1,9 @@
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Serilog;
+using Serilog.Context;
+
 namespace Hotoke.Middlewares
 {
     public class LogMiddleware
