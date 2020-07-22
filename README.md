@@ -3,7 +3,7 @@ Build your own search engine.
 
 ## [中文版](README_CN.md)
 
-## [Online Demo](http://venyo.cn/)
+## [Online Demo](http://venyo.cn/hotoke/)
 
 ## Quick Start
 
@@ -21,7 +21,7 @@ Build your own search engine.
 
 ### HTTP API
 
-`GET http://venyo.cn/search?keyword={keyword}&requestId=`
+`GET http://venyo.cn/hotoke/search?keyword={keyword}&requestId=`
 
 Calling this interface for the first time will return some search results first, as well as some related parameters of the search status. The reason for this is that the response times of multiple search engines are inconsistent. In order to speed up the response of the interface, the search results of the first search engine will be returned first. The result data structure is as follows:
 ```
@@ -52,7 +52,7 @@ Calling this interface for the first time will return some search results first,
 ```
 In the above returned results, `searched` indicates the number of engines that have completed the search; `finished` indicates whether the search task has been completed; `requestId` is the id of the search request, and this field is mainly used for subsequent requests, that is, when `finished` is false, it indicates that the search task is not completed, and there may be other search results that can be called. You can continue to call the link below until finished is true.
 
-`GET http://venyo.cn/search?keyword=&requestId={requestId}`
+`GET http://venyo.cn/hotoke/search?keyword=&requestId={requestId}`
 
 ## Add search engine
 
@@ -101,7 +101,7 @@ This project provides three kinds of meta search engines for selection, and the 
 
 ### ParallelSearcher
 
-ParallelSearcher is the default engine, which initiates query requests to all search engines at the same time when searching and returns when the first search result is obtained. To wait for all search engines to finish before returning results, you can call this interface `GET http://venyo.cn/search/all?keyword={keyword}`
+ParallelSearcher is the default engine, which initiates query requests to all search engines at the same time when searching and returns when the first search result is obtained. To wait for all search engines to finish before returning results, you can call this interface `GET http://venyo.cn/hotoke/search/all?keyword={keyword}`
 
 ### WeightFirstSearcher
 
