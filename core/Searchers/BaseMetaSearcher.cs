@@ -121,7 +121,7 @@ namespace Hotoke.Core.Searchers
                     bool same = false;
                     foreach(var r in results)
                     {
-                        if(r.Title == result.Title || r.Title.SimilarWith(result.Title))
+                        if(r.Title == result.Title || r.Title.SimilarWith(result.Title) || r.Url == result.Url)
                         {
                             if(r.Url.ContainsAny(badUrls))
                             {

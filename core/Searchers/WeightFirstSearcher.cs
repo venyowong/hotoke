@@ -22,6 +22,8 @@ namespace Hotoke.Core.Searchers
 
         private readonly ISearchEngine firstEngine = null;
 
+        private static readonly TimeSpan _expirationTime = new TimeSpan(0, 1, 0);
+
         public WeightFirstSearcher(IConfiguration config, MetaSearcherConfig searcherConfig) : base(config, searcherConfig)
         {
             this.engines = base.GetEngineList()
@@ -52,13 +54,18 @@ namespace Hotoke.Core.Searchers
             {
                 return null;
             }
+            if (this.cache.TryGetValue(keyword, out SearchResultModel result))
+            {
+                return result;
+            }
 
             var requestId = Guid.NewGuid().ToString();
-            var result = new SearchResultModel
+            result = new SearchResultModel
             {
                 RequestId = requestId
             };
-            cache.Set(requestId, result, new TimeSpan(0, 1, 0));
+            cache.Set(requestId, result, _expirationTime);
+            this.cache.Set(keyword, result, _expirationTime);
             var english = !keyword.HasOtherLetter();
             result.Results = new List<SearchResult>();
 
