@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,7 +13,6 @@ namespace Hotoke.Core
 {
     public static class HttpUtility
     {
-        private static HttpClient _httpClient = new HttpClient();
         private static Random Random = new Random();
         private static Regex CharSetRegex = new Regex("charset=\"([^\"]+)", RegexOptions.IgnoreCase);
         private static string[] UserAgents = 
@@ -29,73 +30,31 @@ namespace Hotoke.Core
             "Mozilla/5.0 (X11; U; Linux x86_64; zh-CN; rv:1.9.2.10) Gecko/20100922 Ubuntu/10.10 (maverick) Firefox/3.6.10",
             "Mozilla/5.0 (Linux; U; Android 2.2.1; zh-cn; HTC_Wildfire_A3333 Build/FRG83D) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
         };
-        private static ConcurrentDictionary<string, string> Cookies = new ConcurrentDictionary<string, string>();
-
+        private static CookieContainer _cookieContainer = new CookieContainer();
         static HttpUtility()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            _httpClient.Timeout = new TimeSpan(0, 0, 5);
         }
 
-        public static string Get(Uri uri, HttpClient client = null)
+        public static string Get(Uri uri)
         {
-            if(client == null)
-            {
-                client = _httpClient;
-            }
-
-            var request = new HttpRequestMessage() 
-            {
-                RequestUri = uri,
-                Method = HttpMethod.Get,
-            };
+            var request = HttpWebRequest.CreateHttp(uri);
+            request.Method = "GET";
             request.Headers.Add("User-Agent", UserAgents[Random.Next(UserAgents.Length)]);
             request.Headers.Add("Accept", "*/*");
             request.Headers.Add("Host", uri.Host);
-            if(Cookies.ContainsKey(uri.Host))
+            request.CookieContainer = _cookieContainer;
+            request.Timeout = 5000;
+            using (var response = request.GetResponse())
+            using (var streamReader = new StreamReader(response.GetResponseStream()))
             {
-                request.Headers.Add("Cookie", Cookies[uri.Host]);
-            }
-            using(var responseMessage = client.GetAsync(uri.AbsoluteUri).Result)
-            {
-                Cookies.TryGetValue(uri.Host, out string cookie);
-                var oldCookie = cookie;
-                cookie = responseMessage.Headers.CollectCookie("Cookie", cookie);
-                cookie = responseMessage.Headers.CollectCookie("Set-Cookie", cookie);
-                if(Cookies.ContainsKey(uri.Host))
-                {
-                    Cookies.TryUpdate(uri.Host, cookie, oldCookie);
-                }
-                else
-                {
-                    Cookies.TryAdd(uri.Host, cookie);
-                }
-
-                var charset = responseMessage?.Content?.Headers?.ContentType?.CharSet;
-                var content = responseMessage?.Content?.ReadAsStringAsync().Result;
-                try
-                {
-                    if(string.IsNullOrWhiteSpace(charset))
-                    {
-                        var match = CharSetRegex.Match(content);
-                        if(match != null && match.Success)
-                        {
-                            responseMessage.Content.Headers.ContentType.CharSet = match.Groups[1].Value;
-                        }
-                    }
-                    return responseMessage.Content.ReadAsStringAsync().Result;
-                }
-                catch
-                {
-                    return content;
-                }
+                return streamReader.ReadToEnd();
             }
         }
 
-        public static T Get<T>(string url, HttpClient client = null)
+        public static T Get<T>(string url)
         {
-            var json = Get(new Uri(url), client);
+            var json = Get(new Uri(url));
             if(string.IsNullOrWhiteSpace(json))
             {
                 return default(T);
@@ -142,31 +101,6 @@ namespace Hotoke.Core
             }
 
             return false;
-        }
-
-        public static string Post(string url, IEnumerable<KeyValuePair<string, string>> data)
-        {
-            if(string.IsNullOrWhiteSpace(url))
-            {
-                return string.Empty;
-            }
-
-            return _httpClient.PostAsync(new Uri(url), 
-                data != null ? new FormUrlEncodedContent(data) : null)
-                ?.Result?.Content?.ReadAsStringAsync()?.Result;
-        }
-
-        public static string PostJson(string url, object data)
-        {
-            if(string.IsNullOrWhiteSpace(url))
-            {
-                return string.Empty;
-            }
-
-            return _httpClient.PostAsync(new Uri(url), 
-                data != null ? new StringContent(JsonSerializer.Serialize(data), 
-                Encoding.UTF8, "application/json") : null)?.Result?.Content
-                ?.ReadAsStringAsync()?.Result;
         }
 
         private static Regex HtmlUrlRegex = new Regex(@"^([a-zA-Z]+:)?(//)?([^/]+)?(/)?[^\s]*");
