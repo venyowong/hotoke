@@ -3,7 +3,7 @@
 
 ## [English Version](README.md)
 
-## [线上 Demo](http://venyo.cn/)
+## [线上 Demo](http://venyo.cn/hotoke/)
 
 ## 快速启动
 
@@ -23,7 +23,7 @@
 
 ### HTTP API
 
-`GET http://venyo.cn/search?keyword={keyword}&requestId=`
+`GET http://venyo.cn/hotoke/search?keyword={keyword}&requestId=`
 
 首次调用该接口，将会先返回部分搜索结果，以及一些搜索状态的相关参数。这么做的原因是，多个搜索引擎的响应时间不一致，为了加快接口的响应速度，会先返回第一个搜索引擎的搜索结果。返回结果数据结构如下：
 ```
@@ -53,7 +53,7 @@
 }
 ```
 在以上返回结果中，searched 表示已完成搜索的引擎数量，finished 表示是否已完成本次搜索任务，requestId 为本次搜索请求的 id，该字段主要用来进行后续请求，即当 finished 为 false 时，表示搜索任务未完成，可能还有其他搜索结果，可调用
-`GET http://venyo.cn/search?keyword={keyword}&requestId={首次调用接口返回的 requestId}`
+`GET http://venyo.cn/hotoke/search?keyword={keyword}&requestId={首次调用接口返回的 requestId}`
 继续获取搜索结果，直至 finished 为 true。
 
 ## 接入搜索引擎
@@ -103,7 +103,7 @@ public class Startup
 
 ### ParallelSearcher
 
-ParallelSearcher 为默认引擎，该引擎在搜索时同时发起对所有搜索引擎的查询请求，并且会在获取到第一个搜索结果时返回。若要等待所有搜索引擎都结束任务才返回结果，则应调用`GET http://venyo.cn/search/all?keyword={keyword}`
+ParallelSearcher 为默认引擎，该引擎在搜索时同时发起对所有搜索引擎的查询请求，并且会在获取到第一个搜索结果时返回。若要等待所有搜索引擎都结束任务才返回结果，则应调用`GET http://venyo.cn/hotoke/search/all?keyword={keyword}`
 
 ### WeightFirstSearcher
 
