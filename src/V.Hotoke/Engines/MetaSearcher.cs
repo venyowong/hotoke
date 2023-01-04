@@ -82,15 +82,14 @@ namespace V.Hotoke.Engines
                         {
                             x.Sources.Add(item.Source);
                         }
-                        if (x.Score < item.Score)
+                        if (x.Score > item.Score)
                         {
-                            x.Score = x.Score * (1- 1.0f / (x.Sources.Count + 1));
+                            x.Score = x.Score * (1 + 1.0f / (x.Sources.Count + 1));
                         }
                         else
                         {
-                            x.Score = item.Score * (1 - 1.0f / (x.Sources.Count + 1));
+                            x.Score = item.Score * (1 + 1.0f / (x.Sources.Count + 1));
                         }
-                        x.Score = (x.Score * x.Sources.Count + item.Score) / (x.Sources.Count + 1);
                         if (item.Url.Length < x.Url.Length)
                         {
                             x.UpdateUrl(item.Url);
@@ -109,7 +108,7 @@ namespace V.Hotoke.Engines
                     result.Add(item);
                 }
             }
-            return result.OrderBy(x => x.Score).ToList();
+            return result.OrderByDescending(x => x.Score).ToList();
         }
     }
 }

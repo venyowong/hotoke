@@ -13,6 +13,7 @@ namespace V.Hotoke.Engines
         private string nodesSelection;
         private string linkSelection;
         private string descSelection;
+        private float weight;
         private int httpTimeout;
         private IHttpClientFactory clientFactory;
         private LogChannel logChannel;
@@ -28,6 +29,8 @@ namespace V.Hotoke.Engines
             this.nodesSelection = config[$"Engines:{name}:Nodes"];
             this.linkSelection = config[$"Engines:{name}:Link"];
             this.descSelection = config[$"Engines:{name}:Desc"];
+            float.TryParse(config[$"Engines:{name}:Weight"], out var weight);
+            this.weight = weight;
             this.clientFactory = clientFactory;
             if (!int.TryParse(config["Engines:Timeout"], out int timeout))
             {
@@ -47,7 +50,7 @@ namespace V.Hotoke.Engines
             request.Headers.Add("User-Agent", $"V.Hotoke.Engines.{this.GetType().Name}");
             try
             {
-                var client = this.clientFactory.CreateClient();
+                using var client = this.clientFactory.CreateClient();
                 client.Timeout = TimeSpan.FromMilliseconds(this.httpTimeout);
                 using var response = client.Send(request);
                 if (!response.IsSuccessStatusCode)
@@ -109,18 +112,29 @@ namespace V.Hotoke.Engines
                 .Where(result => result != null).ToList();
                 for (int i = 0; i < searchResults.Count; i++)
                 {
-                    searchResults[i].Score = i + 1 + pageIndex * 10;
+                    searchResults[i].Score = 1.0F / (i + 1 + pageIndex * 10) * this.weight;
                 }
 
                 return searchResults;
             }
             catch (Exception ex)
             {
-                this.logChannel.Warn()
+                if (ex.Message.ToLower().Contains("timeout"))
+                {
+                    this.logChannel.Warn()
+                        .Tag("engine", this.Name)
+                        .Tag("problem", "timeout")
+                        .Log($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {url}")
+                        .Send();
+                }
+                else
+                {
+                    this.logChannel.Warn()
                         .Tag("engine", this.Name)
                         .Tag("problem", "exception")
                         .Log($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {url} {ex}")
                         .Send();
+                }
                 Log.Warning(ex, $"发生异常, url: {url}");
                 return null;
             }
