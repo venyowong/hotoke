@@ -12,7 +12,7 @@ namespace V.Hotoke.Engines
         public override string GetSearchUrl(string keyword, int pageIndex, bool english)
         {
             var pn = pageIndex + 1;
-            return this.baseUrl.Replace("{keyword}", keyword).Replace("{pn}", pn.ToString());
+            return this.baseUrl.Replace("{keyword}", System.Web.HttpUtility.UrlEncode(keyword)).Replace("{pn}", pn.ToString());
         }
     }
 }
