@@ -70,6 +70,11 @@ namespace V.Hotoke.Models
                 return false;
             }
 
+            var maxLen = this.Title.Length;
+            if (result.Title.Length > maxLen)
+            {
+                maxLen = result.Title.Length;
+            }
             var i1 = 0;
             var i2 = 0;
             double diff = 0;
@@ -118,7 +123,7 @@ namespace V.Hotoke.Models
             }
             diff = Math.Sqrt(diff);
 
-            return diff <= 2;
+            return diff <= maxLen / 10.0;
         }
 
         public void UpdateUrl(string url)
